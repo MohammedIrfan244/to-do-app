@@ -28,7 +28,7 @@ export default function Header({ sidebarOpen, setSidebarOpen }: HeaderProps) {
                     >
                         <Menu size={20} />
                     </button>
-                    <h1 className="text-lg font-light text-slate-900 tracking-tight">
+                    <h1 className="text-sm font-semibold text-slate-900 tracking-tight">
                         {getPageName()}
                     </h1>
                 </div>

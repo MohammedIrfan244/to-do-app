@@ -5,7 +5,7 @@ import { useState, useTransition, useEffect } from 'react';
 import { Trash2, CheckCircle2, Circle, Plus, Pencil, Save, X, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
-import { createTodo, deleteTodo, getTodos, toggleTodo, updateTodo  } from '@/server/action'; 
+import { createTodo, deleteTodo, getTodos, toggleTodo, updateTodo  } from '@/server/to-do-action'; 
 import { Todo, CreateTodo} from '@/types/todo'; 
 
 export default function SinglePageTodoApp() {
