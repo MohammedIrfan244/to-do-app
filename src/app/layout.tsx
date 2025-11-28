@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Todo App",
-  description: "A simple todo app",
+  title: "Durio",
+  description: "A simple Daily manager app",
 };
 
 export default function RootLayout({
