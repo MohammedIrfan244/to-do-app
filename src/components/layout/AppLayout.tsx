@@ -1,28 +1,33 @@
-// app/components/AppLayout.tsx
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import Header from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
 
 interface AppLayoutProps {
-  children: React.ReactNode;
+  children: React.ReactNode;
 }
 
 export default function AppLayout({ children }: AppLayoutProps) {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const pathname = usePathname();
 
-  return (
-    <div className="min-h-screen bg-slate-50 flex">
-      <Sidebar open={sidebarOpen} />
+  const authPages = ["/auth/login"];
 
-      <div className="flex-1 flex flex-col">
-        <Header sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+  if (authPages.includes(pathname)) {
+    return <>{children}</>;
+  }
 
-        <main className="flex-1">
-          {children}
-        </main>
-      </div>
-    </div>
-  );
+  return (
+    <div className="bg-slate-50 flex h-screen overflow-hidden"> 
+      <Sidebar open={sidebarOpen} /> 
+      <div className="flex-1 flex flex-col overflow-hidden"> 
+        <Header sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} /> 
+        <main className="flex-1 overflow-y-auto hide-scrollbar-on-main">
+          {children}
+        </main>
+      </div>
+    </div>
+  );
 }

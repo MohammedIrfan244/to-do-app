@@ -4,6 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
 import AppLayout from "@/components/layout/AppLayout";
+import SessionProviderWrapper from "@/components/layout/SessionProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Durio",
+  title: "Dorio",
   description: "A simple Daily manager app",
 };
 
@@ -30,7 +31,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AppLayout>{children}</AppLayout>
+        <SessionProviderWrapper>
+          <AppLayout>{children}</AppLayout>
+        </SessionProviderWrapper>
         <Toaster position="top-right" richColors={true} />
       </body>
     </html>

@@ -1,5 +1,5 @@
 import React from 'react'
-import Notes from '@/components/Note'
+import Notes from '@/components/note/Note'
 
 function NotePage() {
   return (
