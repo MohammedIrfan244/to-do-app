@@ -33,7 +33,7 @@ export default function Sidebar({ open }: SidebarProps) {
 
                     {/* LOGO + BRANDING */}
                     <div className="mb-6 pb-6 border-b border-slate-200">
-                        <h2 className="text-2xl font-bold text-slate-900 tracking-tight">DORIO</h2>
+                        <h2 className="text-2xl font-bold text-slate-900 tracking-tight">DURIO</h2>
 
                         <p className="text-xs text-slate-400 mt-1 tracking-wide">
                             Your personal daily companion

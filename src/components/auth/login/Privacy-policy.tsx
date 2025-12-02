@@ -37,7 +37,7 @@ export default function PrivacyModal({ open, onClose }: PrivacyModalProps) {
           </p>
 
           <p>
-            Everything you create inside DORIO — tasks, notes, journal entries,
+            Everything you create inside DURIO — tasks, notes, journal entries,
             calendar items, habit logs, etc — stays securely stored in our database.
           </p>
 
@@ -56,7 +56,7 @@ export default function PrivacyModal({ open, onClose }: PrivacyModalProps) {
           </p>
 
           <p>
-            By using DORIO, you agree to common privacy practices found in most modern applications.
+            By using DURIO, you agree to common privacy practices found in most modern applications.
           </p>
         </div>
       </div>

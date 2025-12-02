@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Dorio",
+  title: "DURIO",
   description: "A simple Daily manager app",
 };
 

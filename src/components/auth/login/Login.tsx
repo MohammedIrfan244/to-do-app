@@ -12,7 +12,7 @@ function Login() {
 
       <div className="bg-white p-8 rounded-2xl shadow-lg border border-slate-200 w-[380px] text-center">
         <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">
-          Welcome to DORIO
+          Welcome to DURIO
         </h1>
 
         <p className="text-sm text-slate-500 mt-1">
