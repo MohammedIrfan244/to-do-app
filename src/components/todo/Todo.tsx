@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import { createTodo, deleteTodo, getTodos, toggleTodo, updateTodo  } from '@/server/to-do-action'; 
 import { Todo, CreateTodo} from '@/types/todo'; 
 
-export default function SinglePageTodoApp() {
+export default function TodoAPP() {
     const [allTodos, setAllTodos] = useState<Todo[]>([]);
     const [todos, setTodos] = useState<Todo[]>([]);
     const [filterStatus, setFilterStatus] = useState<"all" | "finished" | "unfinished">("all");

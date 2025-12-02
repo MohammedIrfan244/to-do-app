@@ -1,33 +1,35 @@
 "use client";
 
-import { useState } from "react";
 import { usePathname } from "next/navigation";
 import Header from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
+import {
+  SidebarProvider,
+  Sidebar as ShadSidebar,
+} from "@/components/ui/sidebar";
 
-interface AppLayoutProps {
-  children: React.ReactNode;
-}
+export default function AppLayout({ children }: { children: React.ReactNode } ) {
+  const pathname = usePathname();
+  const authPages = ["/auth/login"];
 
-export default function AppLayout({ children }: AppLayoutProps) {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const pathname = usePathname();
+  if (authPages.includes(pathname)) return <>{children}</>;
 
-  const authPages = ["/auth/login"];
+  return (
+    <SidebarProvider>
+      <div className="flex h-screen w-full bg-slate-50 overflow-hidden">
 
-  if (authPages.includes(pathname)) {
-    return <>{children}</>;
-  }
+        <ShadSidebar collapsible="icon" className="border-r border-slate-200">
+          <Sidebar />
+        </ShadSidebar>
 
-  return (
-    <div className="bg-slate-50 flex h-screen overflow-hidden"> 
-      <Sidebar open={sidebarOpen} /> 
-      <div className="flex-1 flex flex-col overflow-hidden"> 
-        <Header sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} /> 
-        <main className="flex-1 overflow-y-auto hide-scrollbar-on-main">
-          {children}
-        </main>
-      </div>
-    </div>
-  );
+        <div className="flex flex-col flex-1"> {/* FULL WIDTH */}
+          <Header />
+          <main className="flex-1 overflow-y-auto hide-scrollbar-on-main">
+            {children}
+          </main>
+        </div>
+
+      </div>
+    </SidebarProvider>
+  );
 }

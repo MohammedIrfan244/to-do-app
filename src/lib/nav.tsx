@@ -19,59 +19,66 @@ interface NavItem {
 
 export const navItems: NavItem[] = [
   {
-    label: "Todo",
+    label: "Welcome",
     url: "/",
-    description: "Manage your tasks efficiently",
+    description: "Good to see you :)",
     icon: <Home size={15} />,
-    color: "#93C5FD" // light pastel blue
+    color: "#F87171" // more visible red
   },
   {
-    label: "Notes",
+    label: "My Tasks",
+    url: "/todo",
+    description: "Let’s get things done",
+    icon: <CheckCircle size={15} />,
+    color: "#60A5FA" // deeper blue
+  },
+  {
+    label: "My Notes",
     url: "/notes",
     icon: <Book size={15} />,
-    description: "Quick thoughts and documented ideas",
-    color: "#FBCFE8" // soft pink pastel
+    description: "Little thoughts & big ideas",
+    color: "#F472B6" // stronger pink
   },
   {
-    label: "Calendar",
+    label: "My Calendar",
     url: "/calendar",
     icon: <CalendarDays size={15} />,
-    description: "Events, meetings & scheduling",
-    color: "#FDE68A" // warm pastel yellow
+    description: "What’s happening and when",
+    color: "#FBBF24" // rich amber
   },
   {
-    label: "Workout",
+    label: "My Workout",
     url: "/workout",
     icon: <Dumbbell size={15} />,
-    description: "Fitness logs and tracker",
-    color: "#A7F3D0" // mint pastel green
+    description: "Move, track, grow stronger",
+    color: "#34D399" // deeper green
   },
   {
-    label: "Calculator",
+    label: "Quick Calc",
     url: "/calculator",
     icon: <Calculator size={15} />,
-    description: "Smart functional calculator",
-    color: "#DDD6FE" // pastel purple
+    description: "Fast numbers when you need them",
+    color: "#A78BFA" // stronger purple
   },
   {
-    label: "Menstruation",
+    label: "Cycle Tracker",
     url: "/menstruation",
     icon: <Heart size={15} />,
-    description: "Cycle tracking insights",
-    color: "#FECACA" // soft rose
+    description: "A gentle guide for your cycle",
+    color: "#FB7185" // stronger rose
   },
   {
-  label: "Habits",
-  url: "/habits",
-  icon: <CheckCircle size={15} />,
-  description: "Daily habit tracking & streaks",
-  color: "#BFDBFE" // soft pastel sky blue
-},
-{
-  label: "Journal",
-  url: "/journal",
-  icon: <PenLine size={15} />,
-  description: "Daily reflection and thoughts",
-  color: "#E9D5FF" // soft lavender
-},
+    label: "Habits & Streaks",
+    url: "/habits",
+    icon: <Book size={15} />,
+    description: "Build consistent routines",
+    color: "#3B82F6" // strong blue
+  },
+  {
+    label: "My Journal",
+    url: "/journal",
+    icon: <PenLine size={15} />,
+    description: "Your safe space for reflection",
+    color: "#C084FC" // visible violet
+  },
 ];

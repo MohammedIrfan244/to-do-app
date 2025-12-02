@@ -1,101 +1,139 @@
 "use client";
 
-import { LogOut, Mail, Menu, User } from "lucide-react";
+import { LogOut, Mail, User, Settings } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
-import ConfirmModal from "@/components/ui/ConfirmModal";
 import { useState } from "react";
 import { navItems } from "@/lib/nav";
 import { formatName } from "@/lib/nameFormatter";
+import { ModeToggle } from "../ui/mode-toggle";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
-interface HeaderProps {
-  sidebarOpen: boolean;
-  setSidebarOpen: (open: boolean) => void;
-}
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 
-export default function Header({ sidebarOpen, setSidebarOpen }: HeaderProps) {
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
+
+export default function Header() {
   const pathname = usePathname();
   const { data: session } = useSession();
-  const [menuOpen, setMenuOpen] = useState(false);
+
   const [confirmLogout, setConfirmLogout] = useState(false);
 
   const item = navItems.find((i) => i.url === pathname);
   const title = item?.label || "";
   const description = item?.description || "";
-  const color = item?.color || "text-slate-900";
+  const color = item?.color || "#aaa";
 
   const username = formatName(session?.user?.name || "User");
-  
 
   return (
-    <header className="border-b rounded-md border-slate-200 bg-white sticky top-0 z-40">
-      <div className="px-8 py-4 flex items-center justify-between">
+    <header className="border-b border-border bg-background sticky top-0 z-40">
+      <div className="px-6 py-3 flex items-center justify-between">
         {/* LEFT */}
-        <div className="flex items-center space-x-4">
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-1.5 hover:bg-slate-100 cursor-pointer rounded-lg transition-all duration-200 hover:scale-105"
-          >
-            <Menu
-              size={20}
-              className={`menu-rotate ${
-                sidebarOpen ? "open" : "closed"
-              }`}
-            />
-          </button>
+        <div className="flex items-center gap-4">
+          <SidebarTrigger className="p-1.5 rounded-lg border border-transparent hover:bg-accent hover:text-accent-foreground" />
 
-            <div className="flex items-center gap-2">
-              <h1 style={{background:`${color}30`, border:`1px solid ${color}`}} className="text-sm py-1 px-2 rounded-md font-semibold text-slate-900 tracking-tight transition-all duration-200 hover:px-3 hover:shadow-sm cursor-default">
-                {title}
-              </h1>
-              <p className="text-sm font-bold">:</p>
+          <div className="flex items-center gap-2">
+            <h1
+              style={{ border: `1px solid ${color}` }}
+              className="text-sm py-1 px-2 rounded-md font-semibold text-foreground tracking-tight"
+            >
+              {title}
+            </h1>
+            <p className="text-sm font-bold text-muted-foreground">:</p>
             {description && (
-              <p className="text-[13px] text-slate-500 mt-[3px] leading-tight">
+              <p className="text-sm text-muted-foreground mt-[2px] leading-tight">
                 {description}
               </p>
             )}
           </div>
         </div>
 
-        {/* RIGHT — USER DROPDOWN */}
-        <div className="relative">
-          <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            style={{background:`${color}30` , border:`1px solid ${color}`}}
-            className="text-sm text-slate-600 cursor-pointer py-1 px-2 rounded-md font-semibold hover:text-slate-900 transition-all duration-200 hover:px-3"
-          >
-            {username}
-          </button>
+        {/* RIGHT USER DROPDOWN */}
+        <div className="flex items-center gap-4">
+          <ModeToggle />
+          <DropdownMenu>
+            <DropdownMenuTrigger className="px-3 cursor-pointer text-foreground py-1.5 rounded-md border bg-background hover:bg-accent hover:text-accent-foreground text-sm font-medium">
+              {username}
+            </DropdownMenuTrigger>
 
-          {menuOpen && (
-            <div className="absolute right-0 mt-2 bg-white border border-slate-200 rounded-lg shadow-lg p-3 w-48">
-              <div className="flex items-center justify-between text-sm text-slate-700 font-medium border-b pb-2 mb-2">
-                <User size={16} className="text-slate-500 mr-2" />
-                <p>{session?.user?.name}</p>
+            <DropdownMenuContent align="end" className="w-56">
+              {/* USER PROFILE INFO (no click) */}
+              <div className="pb-2 mb-2 ml-2 space-y-2 border-b border-border">
+                <p className="text-sm font-semibold text-foreground flex items-center">
+                  <span>
+                    <User size={16} className="mr-2" />
+                  </span>{" "}
+                  {session?.user?.name}
+                </p>
+                <p className="text-xs text-muted-foreground flex items-center">
+                  <span>
+                    <Mail size={16} className="mr-2" />
+                  </span>{" "}
+                  {session?.user?.email}
+                </p>
               </div>
-              <div className="flex items-center justify-between text-xs text-slate-500 mb-3 truncate">
-                <Mail size={16} className="text-slate-500 mr-2" />
-                <p>{session?.user?.email}</p>
-              </div>
-              <button
-                onClick={() => setConfirmLogout(true)}
-                className="w-full text-sm text-left text-red-500 hover:bg-red-50 px-2 py-1 flex items-center justify-between cursor-pointer rounded transition-all duration-200 hover:scale-[1.02]"
+
+              {/* SETTINGS — page redirect */}
+              <DropdownMenuItem
+                className="cursor-pointer"
+                onClick={() => (window.location.href = "/settings")}
               >
-                Logout <LogOut size={16} className="ml-2" />
-              </button>
-            </div>
-          )}
+                <Settings size={16} className="mr-2" />
+                Settings
+              </DropdownMenuItem>
+
+              <DropdownMenuSeparator />
+
+              {/* LOGOUT */}
+              <DropdownMenuItem
+                className="cursor-pointer text-red-600 focus:text-red-600"
+                onClick={() => setConfirmLogout(true)}
+              >
+                <LogOut size={16} className="mr-2" />
+                Logout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
-      <ConfirmModal
-        open={confirmLogout}
-        title="Logout?"
-        description="Are you sure you want to log out of your account?"
-        confirmLabel="Logout"
-        cancelLabel="Cancel"
-        onConfirm={() => signOut({ callbackUrl: "/auth/login" })}
-        onCancel={() => setConfirmLogout(false)}
-      />
+
+      {/* LOGOUT CONFIRMATION */}
+      <AlertDialog open={confirmLogout} onOpenChange={setConfirmLogout}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Logout?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to log out?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700"
+              onClick={() => signOut({ callbackUrl: "/auth/login" })}
+            >
+              Logout
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </header>
   );
 }
