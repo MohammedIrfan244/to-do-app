@@ -46,7 +46,7 @@ export default function Header() {
       <div className="px-6 py-3 flex items-center justify-between">
         {/* LEFT */}
         <div className="flex items-center gap-4">
-          <SidebarTrigger className="p-1.5 rounded-lg border border-transparent hover:bg-accent hover:text-accent-foreground" />
+          <SidebarTrigger className="p-1.5 rounded-lg border border-transparent hover:bg-accent cursor-pointer hover:text-accent-foreground" />
 
           <div className="flex items-center gap-2">
             <h1
@@ -66,7 +66,7 @@ export default function Header() {
 
         {/* RIGHT USER DROPDOWN */}
         <div className="flex items-center gap-4">
-          <ModeToggle />
+          <ModeToggle  />
           <DropdownMenu>
             <DropdownMenuTrigger className="px-3 cursor-pointer text-foreground py-1.5 rounded-md border bg-background hover:bg-accent hover:text-accent-foreground text-sm font-medium">
               {username}

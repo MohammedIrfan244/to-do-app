@@ -16,9 +16,9 @@ export default function AppLayout({ children }: { children: React.ReactNode } ) 
 
   return (
     <SidebarProvider>
-      <div className="flex h-screen w-full bg-slate-50 overflow-hidden">
+      <div className="flex h-screen w-full overflow-hidden">
 
-        <ShadSidebar collapsible="icon" className="border-r border-slate-200">
+        <ShadSidebar variant="floating" collapsible="icon" className="border-r border-foreground/10">
           <Sidebar />
         </ShadSidebar>
 

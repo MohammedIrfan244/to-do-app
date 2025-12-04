@@ -27,6 +27,7 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
+import clsx from "clsx";
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -37,57 +38,69 @@ export default function Sidebar() {
 
   return (
     <>
-      <SidebarHeader>
+      <SidebarHeader className="px-5">
         {isOpen ? (
-          <Link href="/" className="flex flex-col border-b pb-4 pt-2">
-            <h2 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">
+          <Link href="/" className="flex flex-col border-b pb-4 pt-2 space-y-1">
+            <h2 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight title-animate">
               DURIO
             </h2>
-            <p className="text-xs text-slate-400 mt-1 tracking-wide">
+            <p className="text-xs md:text-sm tracking-tight text-slate-400 mt-1">
               Your personal daily companion
             </p>
           </Link>
         ) : (
           <Link
             href="/"
-            className="text-2xl font-bold text-foreground tracking-tight">
+            className="text-2xl font-bold text-foreground tracking-tight transform -translate-x-1"
+          >
+            <h1>
             D
+            </h1>
           </Link>
         )}
       </SidebarHeader>
 
-      <SidebarContent className="pt-3 overflow-hidden">
+      <SidebarContent className={clsx("pt-3 overflow-y-auto hide-scrollbar-on-main",isOpen?"px-1":"px-2")}>
         <SidebarMenu className="space-y-2">
-          {navItems.map((item) => {
+          {navItems.map((item, index) => {
             const isActive = pathname === item.url;
+            const prevCategory = navItems[index - 1]?.category;
+            const categoryChanged = item.category !== prevCategory;
 
             return (
-              <SidebarMenuItem key={item.url}>
-                <SidebarMenuButton
-                  tooltip={item.label}
-                  isActive={isActive}
-                  asChild
-                >
-                  <Link
-                    href={item.url}
-                    className="flex items-center gap-3 text-sm"
-                  >
-                    <span
-                      style={{
-                        color: item.color,
-                        opacity: isActive ? 1 : 0.9,
-                      }}
-                      className="flex-shrink-0"
-                    >
-                      {item.icon}
-                    </span>
+              <>
+                {/* Category separator */}
+                {index !== 0 && categoryChanged && (
+                  <SidebarSeparator className="my-2" />
+                )}
 
-                    {isOpen && (
-                      <span className="relative top-[1px]">{item.label}</span>
-                    )}
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+                <SidebarMenuItem key={item.url}>
+                  <SidebarMenuButton
+                    tooltip={item.label}
+                    isActive={isActive}
+                    asChild
+                  >
+                    <Link
+                      href={item.url}
+                      className="flex items-center gap-3 text-sm nav-item-group"
+                    >
+                      <span
+                        style={{
+                          color: item.color,
+                          opacity: isActive ? 1 : 0.9,
+                        }}
+                        className={`flex-shrink-0 ${item.animationClass}`}
+                      >
+                        {item.icon}
+                      </span>
+
+                      {isOpen && (
+                        <span className="relative top-[1px]">{item.label}</span>
+                      )}
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </>
             );
           })}
         </SidebarMenu>
@@ -95,24 +108,28 @@ export default function Sidebar() {
         <SidebarSeparator className="my-4" />
       </SidebarContent>
 
-      <SidebarFooter>
-        <SidebarMenuItem>
+      <SidebarFooter className={clsx(isOpen ? "px-5" : "px-2.5")}>
+        <SidebarSeparator className="mt-2" />
+
+        {/* Settings */}
+        <SidebarMenuItem className="list-none">
           <SidebarMenuButton
-            className="text-foreground cursor-pointer hover:text-muted-foreground"
-            isActive={false}
+            className="text-foreground cursor-pointer settings-button"
             onClick={() => router.push("/settings")}
           >
-            <Settings size={18} />
+            <Settings className="settings-icon" size={18} />
             <span>Settings</span>
           </SidebarMenuButton>
         </SidebarMenuItem>
-        <SidebarMenuItem>
+
+        {/* Logout */}
+        <SidebarMenuItem className="list-none">
           <SidebarMenuButton
-            className="text-red-600 cursor-pointer hover:text-red-700"
+            className="text-red-600 font-semibold cursor-pointer hover:text-red-700 logout-button"
             isActive={false}
             onClick={() => setShowSignOutModal(true)}
           >
-            <LogOut size={18} />
+            <LogOut className="logout-icon" size={18} />
             {isOpen && <span>Sign out</span>}
           </SidebarMenuButton>
         </SidebarMenuItem>
