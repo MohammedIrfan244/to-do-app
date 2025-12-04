@@ -108,7 +108,7 @@ export default function Sidebar() {
         <SidebarSeparator className="my-4" />
       </SidebarContent>
 
-      <SidebarFooter className={clsx(isOpen ? "px-5" : "px-2.5")}>
+      <SidebarFooter className={clsx(isOpen ? "md:px-5" : "px-2.5")}>
         <SidebarSeparator className="mt-2" />
 
         {/* Settings */}
