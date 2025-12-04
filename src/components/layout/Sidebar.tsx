@@ -108,13 +108,13 @@ export default function Sidebar() {
         <SidebarSeparator className="my-4" />
       </SidebarContent>
 
-      <SidebarFooter className={clsx(isOpen ? "md:px-5" : "px-2.5")}>
+      <SidebarFooter>
         <SidebarSeparator className="mt-2" />
 
         {/* Settings */}
-        <SidebarMenuItem className="list-none">
+        <SidebarMenuItem className="list-none ">
           <SidebarMenuButton
-            className="text-foreground cursor-pointer settings-button"
+            className="text-foreground cursor-pointer settings-button flex items-center gap-3 text-sm "
             onClick={() => router.push("/settings")}
           >
             <Settings className="settings-icon" size={18} />
