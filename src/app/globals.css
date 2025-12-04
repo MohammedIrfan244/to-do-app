@@ -1,8 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-/* 
----break---
- */
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -48,9 +46,7 @@
 body {
   position: relative;
   color: var(--color-foreground);
-
-  background: var(--color-background
-  );
+  background: var(--color-background);
   font-family: var(--font-body), sans-serif;
   overflow-x: hidden;
 }
@@ -59,30 +55,20 @@ body {
   font-family: var(--font-heading), cursive;
 }
 
-/* 
-/*
- * 1. Hide scrollbar for Chrome, Safari, and Opera
- */
+/* Scrollbar Hiding */
 .hide-scrollbar-on-main::-webkit-scrollbar {
   display: none;
   width: 0 !important;
-  /* Optional, but helps in some cases */
   height: 0 !important;
 }
 
-/*
- * 2. Hide scrollbar for IE, Edge
- */
 .hide-scrollbar-on-main {
   -ms-overflow-style: none;
-  /* IE and Edge */
   scrollbar-width: none;
-  /* Firefox */
 }
 
 .menu-rotate {
   transition: transform 0.45s ease;
-  /* slower & smoother */
 }
 
 .menu-rotate.open {
@@ -93,11 +79,8 @@ body {
   transform: rotate(90deg);
 }
 
-/* 
----break---
- */
-
-:root {
+/* --- LIGHT / DEFAULT --- */
+:root, .light {
   --radius: 0.625rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.147 0.004 49.25);
@@ -132,10 +115,65 @@ body {
   --sidebar-ring: oklch(0.709 0.01 56.259);
 }
 
-/* 
----break---
- */
+/* --- SIDEBAR VARIATIONS @LAYER BASE --- */
+@layer base {
+  :root {
+    --sidebar: oklch(0.985 0 0);
+    --sidebar-foreground: oklch(0.145 0 0);
+    --sidebar-primary: oklch(0.205 0 0);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.97 0 0);
+    --sidebar-accent-foreground: oklch(0.205 0 0);
+    --sidebar-border: oklch(0.922 0 0);
+    --sidebar-ring: oklch(0.708 0 0);
+  }
 
+  .dark {
+    --sidebar: oklch(0.205 0 0);
+    --sidebar-foreground: oklch(0.985 0 0);
+    --sidebar-primary: oklch(0.488 0.243 264.376);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.269 0 0);
+    --sidebar-accent-foreground: oklch(0.985 0 0);
+    --sidebar-border: oklch(1 0 0 / 10%);
+    --sidebar-ring: oklch(0.439 0 0);
+  }
+  
+  .pooki {
+    --sidebar: oklch(0.96 0.03 340);
+    --sidebar-foreground: oklch(0.35 0.1 330);
+    --sidebar-primary: oklch(0.75 0.18 335);
+    --sidebar-primary-foreground: oklch(1 0 0);
+    --sidebar-accent: oklch(0.92 0.05 335);
+    --sidebar-accent-foreground: oklch(0.35 0.1 330);
+    --sidebar-border: oklch(0.9 0.04 335);
+    --sidebar-ring: oklch(0.75 0.18 335);
+  }
+
+  .gothic {
+    --sidebar: oklch(0.15 0.01 280);
+    --sidebar-foreground: oklch(0.85 0.02 280);
+    --sidebar-primary: oklch(0.4 0.2 20);
+    --sidebar-primary-foreground: oklch(0.95 0 0);
+    --sidebar-accent: oklch(0.25 0.05 280);
+    --sidebar-accent-foreground: oklch(0.9 0.02 280);
+    --sidebar-border: oklch(0.3 0.05 280);
+    --sidebar-ring: oklch(0.4 0.2 20);
+  }
+
+  .natural {
+    --sidebar: oklch(0.95 0.03 95);
+    --sidebar-foreground: oklch(0.25 0.05 140);
+    --sidebar-primary: oklch(0.55 0.15 140);
+    --sidebar-primary-foreground: oklch(0.98 0.01 95);
+    --sidebar-accent: oklch(0.9 0.05 100);
+    --sidebar-accent-foreground: oklch(0.25 0.05 140);
+    --sidebar-border: oklch(0.85 0.05 100);
+    --sidebar-ring: oklch(0.55 0.15 140);
+  }
+}
+
+/* --- DARK --- */
 .dark {
   --background: oklch(0.147 0.004 49.25);
   --foreground: oklch(0.985 0.001 106.423);
@@ -170,9 +208,155 @@ body {
   --sidebar-ring: oklch(0.553 0.013 58.071);
 }
 
-/* 
----break---
- */
+/* --- POOKI (Pink/Soft) --- */
+.pooki {
+  --radius: 1.25rem;
+  --background: oklch(0.96 0.03 340);
+  --foreground: oklch(0.35 0.1 330);
+  --card: oklch(0.98 0.02 340);
+  --card-foreground: oklch(0.35 0.1 330);
+  --popover: oklch(0.98 0.02 340);
+  --popover-foreground: oklch(0.35 0.1 330);
+  --primary: oklch(0.75 0.18 335);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.94 0.04 335);
+  --secondary-foreground: oklch(0.4 0.1 335);
+  --muted: oklch(0.94 0.02 335);
+  --muted-foreground: oklch(0.6 0.05 335);
+  --accent: oklch(0.92 0.05 335);
+  --accent-foreground: oklch(0.35 0.1 330);
+  --destructive: oklch(0.65 0.22 15);
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.9 0.04 335);
+  --input: oklch(0.9 0.04 335);
+  --ring: oklch(0.75 0.18 335);
+  
+  /* Sidebar */
+  --sidebar: oklch(0.96 0.03 340);
+  --sidebar-foreground: oklch(0.35 0.1 330);
+  --sidebar-primary: oklch(0.75 0.18 335);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.92 0.05 335);
+  --sidebar-accent-foreground: oklch(0.35 0.1 330);
+  --sidebar-border: oklch(0.9 0.04 335);
+  --sidebar-ring: oklch(0.75 0.18 335);
+  
+  --chart-1: oklch(0.75 0.18 335);
+  --chart-2: oklch(0.65 0.15 310);
+  --chart-3: oklch(0.85 0.12 350);
+  --chart-4: oklch(0.7 0.12 280);
+  --chart-5: oklch(0.9 0.08 335);
+}
+
+/* --- GOTHIC (Vampire Red/Black/Purple - Sharp Edges) --- */
+.gothic {
+  --radius: 0.2rem; /* Sharp gothic edges */
+
+  /* ✦ Deep Gothic Base (Blackened Purple) */
+  --background: oklch(0.10 0.02 300);
+  --foreground: oklch(0.95 0.02 320);
+
+  /* ✦ Cards - Slightly lifting from the abyss */
+  --card: oklch(0.14 0.03 300);
+  --card-foreground: oklch(0.95 0.02 320);
+
+  --popover: oklch(0.12 0.03 300);
+  --popover-foreground: oklch(0.95 0.02 320);
+
+  /* ✦ Vampire Blood Primary (Deeper & richer red) */
+  --primary: oklch(0.40 0.30 20);
+  --primary-foreground: oklch(0.98 0 0);
+
+  /* ✦ Noble Gothic Purple */
+  --secondary: oklch(0.22 0.12 300);
+  --secondary-foreground: oklch(0.95 0.02 320);
+
+  /* ✦ Muted Dark Rose */
+  --muted: oklch(0.18 0.06 300);
+  --muted-foreground: oklch(0.70 0.02 320);
+
+  /* ✦ Purple Accent Glow */
+  --accent: oklch(0.28 0.15 310);
+  --accent-foreground: oklch(0.95 0.02 320);
+
+  /* ✦ Terrifying Red for destructive */
+  --destructive: oklch(0.37 0.30 22);
+  --destructive-foreground: oklch(0.98 0 0);
+
+  /* ✦ Borders & Inputs */
+  --border: oklch(0.25 0.06 300);
+  --input: oklch(0.18 0.05 300);
+  --ring: oklch(0.40 0.30 20); /* Bloody red ring */
+
+  /* ✦ Sidebar — richer purple & red blend */
+  --sidebar: oklch(0.13 0.03 300);
+  --sidebar-foreground: oklch(0.95 0.02 320);
+
+  --sidebar-primary: oklch(0.38 0.32 20); /* Lust-filled red */
+  --sidebar-primary-foreground: oklch(0.98 0 0);
+
+  --sidebar-accent: oklch(0.22 0.12 300);
+  --sidebar-accent-foreground: oklch(0.95 0.02 320);
+
+  --sidebar-border: oklch(0.22 0.06 300);
+  --sidebar-ring: oklch(0.40 0.30 20);
+
+  /* ✦ Charts with dramatic goth tones */
+  --chart-1: oklch(0.40 0.30 20);
+  --chart-2: oklch(0.30 0.20 300);
+  --chart-3: oklch(0.35 0.15 260);
+  --chart-4: oklch(0.18 0.12 320);
+  --chart-5: oklch(0.45 0.10 300);
+}
+
+/* --- NATURAL (Warm/Cozy - Soft Edges) --- */
+.natural {
+  --radius: 0.75rem; /* Cozy soft roundness */
+  
+  --background: oklch(0.97 0.02 95); /* Warm Beige */
+  --foreground: oklch(0.2 0.04 140); /* Deep Green Text */
+  
+  --card: oklch(0.95 0.03 95); /* Slightly darker beige */
+  --card-foreground: oklch(0.2 0.04 140);
+  
+  --popover: oklch(0.97 0.02 95);
+  --popover-foreground: oklch(0.2 0.04 140);
+  
+  --primary: oklch(0.55 0.15 140); /* Earthy Green */
+  --primary-foreground: oklch(0.98 0.01 95);
+  
+  --secondary: oklch(0.92 0.06 110); /* Soft Sage/Yellow tint */
+  --secondary-foreground: oklch(0.25 0.05 140);
+  
+  --muted: oklch(0.93 0.03 100);
+  --muted-foreground: oklch(0.5 0.05 140);
+  
+  --accent: oklch(0.9 0.08 110); /* Mossy accent */
+  --accent-foreground: oklch(0.2 0.04 140);
+  
+  --destructive: oklch(0.6 0.18 30); /* Terracotta */
+  --destructive-foreground: oklch(0.98 0.01 95);
+  
+  --border: oklch(0.85 0.05 100);
+  --input: oklch(0.85 0.05 100);
+  --ring: oklch(0.55 0.15 140);
+
+  /* Sidebar - Warm beige/green theme */
+  --sidebar: oklch(0.95 0.03 95);
+  --sidebar-foreground: oklch(0.25 0.05 140);
+  --sidebar-primary: oklch(0.55 0.15 140); /* Green */
+  --sidebar-primary-foreground: oklch(0.98 0.01 95);
+  --sidebar-accent: oklch(0.9 0.05 100);
+  --sidebar-accent-foreground: oklch(0.25 0.05 140);
+  --sidebar-border: oklch(0.85 0.05 100);
+  --sidebar-ring: oklch(0.55 0.15 140);
+
+  --chart-1: oklch(0.55 0.15 140);
+  --chart-2: oklch(0.65 0.12 120);
+  --chart-3: oklch(0.7 0.1 90);
+  --chart-4: oklch(0.6 0.08 160);
+  --chart-5: oklch(0.8 0.1 70);
+}
 
 @layer base {
   * {
@@ -184,34 +368,8 @@ body {
   }
 }
 
-@layer base {
-  :root {
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.708 0 0);
-  }
-
-  .dark {
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.439 0 0);
-  }
-}
-
-
-
-
-
+/* ---break---
+ */
 /* Animations */
 
 /* Home - Welcoming bounce with scale */
