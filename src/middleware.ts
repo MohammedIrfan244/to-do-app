@@ -4,6 +4,11 @@ import type { NextRequest } from "next/server";
 import { error, info } from "./lib/logger";
 
 export async function middleware(req: NextRequest) {
+
+  // route logging
+  const time = new Date().toISOString();
+  info("ROUTE:", req.nextUrl.pathname+ " at " + time);
+
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
 
   info("SESSION TOKEN:", token);

@@ -1,7 +1,7 @@
 "use client";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
-import PrivacyModal from "@/components/auth/login/Privacy-policy";
+import PrivacyModal from "@/components/auth/login/privacy-policy";
 
 function Login() {
   const [privacyOpen, setPrivacyOpen] = useState(false);

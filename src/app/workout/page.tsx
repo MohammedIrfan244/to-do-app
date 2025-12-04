@@ -1,4 +1,4 @@
-import Workout from '@/components/workout/Workout'
+import Workout from '@/components/workout/workout'
 import React from 'react'
 
 function WorkoutPage() {

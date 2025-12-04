@@ -8,8 +8,8 @@ import {
 } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
-import AppLayout from "@/components/layout/AppLayout";
-import SessionProviderWrapper from "@/components/layout/SessionProvider";
+import AppLayout from "@/components/layout/app-layout";
+import SessionProviderWrapper from "@/components/layout/session-provider";
 
 // CURRENT FONTS
 const geistSans = Geist({

@@ -41,7 +41,7 @@ export default function Sidebar() {
       <SidebarHeader className="px-5">
         {isOpen ? (
           <Link href="/" className="flex flex-col border-b pb-4 pt-2 space-y-1">
-            <h2 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight title-animate">
+            <h2 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight title-animate title">
               DURIO
             </h2>
             <p className="text-xs md:text-sm tracking-tight text-slate-400 mt-1">
@@ -51,7 +51,7 @@ export default function Sidebar() {
         ) : (
           <Link
             href="/"
-            className="text-2xl font-bold text-foreground tracking-tight transform -translate-x-1"
+            className="text-2xl font-bold text-foreground tracking-tight transform -translate-x-1 title"
           >
             <h1>
             D
@@ -62,18 +62,10 @@ export default function Sidebar() {
 
       <SidebarContent className={clsx("pt-3 overflow-y-auto hide-scrollbar-on-main",isOpen?"px-1":"px-2")}>
         <SidebarMenu className="space-y-2">
-          {navItems.map((item, index) => {
+          {navItems.map((item) => {
             const isActive = pathname === item.url;
-            const prevCategory = navItems[index - 1]?.category;
-            const categoryChanged = item.category !== prevCategory;
-
             return (
-              <>
-                {/* Category separator */}
-                {index !== 0 && categoryChanged && (
-                  <SidebarSeparator className="my-2" />
-                )}
-
+              <div key={item.url}>
                 <SidebarMenuItem key={item.url}>
                   <SidebarMenuButton
                     tooltip={item.label}
@@ -100,12 +92,10 @@ export default function Sidebar() {
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-              </>
+              </div>
             );
           })}
         </SidebarMenu>
-
-        <SidebarSeparator className="my-4" />
       </SidebarContent>
 
       <SidebarFooter>
@@ -114,7 +104,7 @@ export default function Sidebar() {
         {/* Settings */}
         <SidebarMenuItem className="list-none ">
           <SidebarMenuButton
-            className="text-foreground cursor-pointer settings-button flex items-center gap-3 text-sm "
+            className="text-foreground cursor-pointer settings-button flex items-center gap-3 text-sm"
             onClick={() => router.push("/settings")}
           >
             <Settings className="settings-icon" size={18} />

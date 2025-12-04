@@ -1,4 +1,4 @@
-import Settings from '@/components/settings/Settings'
+import Settings from '@/components/settings/settings'
 import React from 'react'
 
 function SettingPage() {

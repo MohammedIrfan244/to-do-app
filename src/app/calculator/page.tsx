@@ -1,4 +1,4 @@
-import { Calculator } from 'lucide-react'
+import Calculator from '@/components/calculator/calculator'
 import React from 'react'
 
 function CalculatorPage() {

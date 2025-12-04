@@ -10,7 +10,6 @@ export interface NavItem {
   description: string;
   icon: React.ReactNode;
   color: string;
-  category: "Dashboard" | "Creation" | "Wellness" | "Personal";
   animationClass: string;
 }
 
@@ -21,7 +20,6 @@ export const navItems: NavItem[] = [
     description: "Your comfy starting point. Good vibes only.",
     icon: <Home size={18} />,
     color: "#F87171",
-    category: "Dashboard",
     animationClass: "animate-home"
   },
   {
@@ -30,7 +28,6 @@ export const navItems: NavItem[] = [
     description: "Let's get that sweet, sweet done feeling.",
     icon: <CheckCircle size={18} />,
     color: "#60A5FA",
-    category: "Personal",
     animationClass: "animate-check"
   },
   {
@@ -39,7 +36,6 @@ export const navItems: NavItem[] = [
     icon: <CalendarDays size={18} />,
     description: "Plotting the adventures and chilling time.",
     color: "#FBBF24",
-    category: "Personal",
     animationClass: "animate-calendar"
   },
   {
@@ -48,7 +44,6 @@ export const navItems: NavItem[] = [
     icon: <BookOpen size={18} />,
     description: "Escaping reality, one chapter at a time.",
     color: "#34D399",
-    category: "Personal",
     animationClass: "animate-book"
   },
   {
@@ -57,7 +52,6 @@ export const navItems: NavItem[] = [
     icon: <Zap size={18} />,
     description: "Consistency is the cheat code to life.",
     color: "#F59E0B",
-    category: "Personal",
     animationClass: "animate-zap"
   },
   {
@@ -66,7 +60,6 @@ export const navItems: NavItem[] = [
     icon: <PenLine size={18} />,
     description: "Your safe space to vent and reflect.",
     color: "#C084FC",
-    category: "Personal",
     animationClass: "animate-journal"
   },
   {
@@ -75,7 +68,6 @@ export const navItems: NavItem[] = [
     icon: <ImageIcon size={18} />,
     description: "Memories are just a click away.",
     color: "#FCD34D",
-    category: "Personal",
     animationClass: "animate-photo"
   },
   {
@@ -84,7 +76,6 @@ export const navItems: NavItem[] = [
     icon: <Dumbbell size={18} />,
     description: "Get those endorphins movin' and groovin'.",
     color: "#4ADE80",
-    category: "Wellness",
     animationClass: "animate-dumbbell"
   },
   {
@@ -93,7 +84,6 @@ export const navItems: NavItem[] = [
     icon: <Moon size={18} />,
     description: "Optimizing rest for maximum chill.",
     color: "#6366F1",
-    category: "Wellness",
     animationClass: "animate-moon"
   },
   {
@@ -102,7 +92,6 @@ export const navItems: NavItem[] = [
     icon: <Heart size={18} />,
     description: "Staying in tune with the body's flow.",
     color: "#FB7185",
-    category: "Wellness",
     animationClass: "animate-heart"
   },
   {
@@ -111,7 +100,6 @@ export const navItems: NavItem[] = [
     icon: <Rocket size={18} />,
     description: "Where the magic and big things happen.",
     color: "#FB923C",
-    category: "Creation",
     animationClass: "animate-rocket"
   },
   {
@@ -120,7 +108,6 @@ export const navItems: NavItem[] = [
     icon: <Hourglass size={18} />,
     description: "Lock out the noise, lock in the flow.",
     color: "#A78BFA",
-    category: "Creation",
     animationClass: "animate-hourglass"
   },
   {
@@ -129,7 +116,6 @@ export const navItems: NavItem[] = [
     icon: <StickyNote size={18} />,
     description: "Catching those random brainstorms before they fly away.",
     color: "#F472B6",
-    category: "Creation",
     animationClass: "animate-note"
   },
   {
@@ -138,7 +124,6 @@ export const navItems: NavItem[] = [
     icon: <Archive size={18} />,
     description: "My favorite digital tools and goodies.",
     color: "#2DD4BF",
-    category: "Creation",
     animationClass: "animate-archive"
   },
   {
@@ -147,7 +132,6 @@ export const navItems: NavItem[] = [
     icon: <Calculator size={18} />,
     description: "Math? We just need fast answers.",
     color: "#818CF8",
-    category: "Creation",
     animationClass: "animate-calc"
   }
 ];
