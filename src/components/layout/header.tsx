@@ -161,7 +161,7 @@ export default function Header() {
             <DropdownMenuTrigger asChild>
               <Button 
                 variant="outline" 
-                className="h-9 pl-2 pr-3 rounded-full border-border/60 flex items-center gap-2transition-all duration-300 ease-out hover:bg-accent hover:border-primary/30 hover:shadow-md hover:scale-[1.02] active:scale-95 cursor-pointer"
+                className="h-9 pl-2 pr-3 border-border/60 flex items-center gap-2transition-all duration-300 ease-out hover:bg-accent hover:border-primary/30 hover:shadow-md hover:scale-[1.02] active:scale-95 cursor-pointer"
               >
                 {/* Avatar */}
                 <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">
