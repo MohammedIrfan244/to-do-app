@@ -16,14 +16,11 @@ import { ThemeLoader } from "@/components/ui/theme-loader";
 export function ModeToggle() {
   const { setTheme, theme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
-
-  // State for the buffer animation
   const [isThemeLoading, setIsThemeLoading] = React.useState(false);
   const [pendingTheme, setPendingTheme] = React.useState<string | undefined>(
     undefined
   );
 
-  // Prevent hydration mismatch by waiting for mount
   React.useEffect(() => {
     setMounted(true);
   }, []);
@@ -34,18 +31,14 @@ export function ModeToggle() {
     setPendingTheme(newTheme);
     setIsThemeLoading(true);
 
-    // Wait 2.5 seconds (Buffer Time)
     setTimeout(() => {
       setTheme(newTheme);
-      // Force hard reload to clear styles/state
       window.location.reload();
     }, 2500);
   };
 
-  // Helper to determine if a specific icon is active
   const isActive = (target: string) => theme === target;
 
-  // Render a skeleton/placeholder until mounted to prevent icon mismatch
   if (!mounted) {
     return (
       <Button variant="outline" size="icon" disabled>
@@ -62,9 +55,13 @@ export function ModeToggle() {
         <DropdownMenuTrigger asChild>
           <Button
             variant="outline"
-            className="relative cursor-pointer"
             size="icon"
             disabled={isThemeLoading}
+            className="
+    relative cursor-pointer
+    hover:ring-2 hover:ring-ring hover:ring-offset-2 hover:ring-offset-background
+    focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background
+  "
           >
             {/* Sun (Light/System default) */}
             <Sun

@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import Header from "@/components/layout/navbar";
+import Header from "@/components/layout/header";
 import Sidebar from "@/components/layout/sidebar";
 import {
   SidebarProvider,
@@ -25,9 +25,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <Sidebar />
         </ShadSidebar>
 
-        <div className="flex flex-col flex-1">
+        <div className="flex flex-col flex-1 p-2">
           {" "}
-          {/* FULL WIDTH */}
           <Header />
           <main
             style={{

@@ -9,7 +9,7 @@ function SessionProviderWrapper({ children }: { children: React.ReactNode }) {
       <ThemeProvider
         attribute="class"
         defaultTheme="system"
-        themes={["light", "dark", "pookie", "system"]}
+        themes={["light", "dark", "pookie", "gothic", "natural", "system"]}
         enableSystem
       >
         {children}
