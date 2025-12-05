@@ -56,7 +56,7 @@ export default function PrivacyModal({ open, onClose }: PrivacyModalProps) {
           </p>
 
           <p>
-            By using DURIO, you agree to common privacy practices found in most modern applications.
+            Have an exciting experience and thank you for trusting DURIO with your productivity!
           </p>
         </div>
       </div>
