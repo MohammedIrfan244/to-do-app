@@ -79,11 +79,11 @@ export function ModeToggle() {
               ${isActive("dark") ? "rotate-0 scale-100" : "rotate-90 scale-0"}`}
             />
 
-            {/* Flower (Pooki) */}
+            {/* Flower (Pookie) */}
             <Flower
               className={`h-[1.2rem] w-[1.2rem] transition-all duration-500 text-pink-400 absolute 
               ${
-                isActive("pooki") ? "rotate-0 scale-100" : "rotate-90 scale-0"
+                isActive("pookie") ? "rotate-0 scale-100" : "rotate-90 scale-0"
               }`}
             />
 
@@ -113,7 +113,7 @@ export function ModeToggle() {
           <DropdownMenuItem onClick={() => handleThemeChange("dark")}>
             Cozy Night Mode
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => handleThemeChange("pooki")}>
+          <DropdownMenuItem onClick={() => handleThemeChange("pookie")}>
             Pookie Glow
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => handleThemeChange("gothic")}>

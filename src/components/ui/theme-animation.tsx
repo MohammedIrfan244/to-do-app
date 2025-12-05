@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
-type Theme = 'light' | 'dark' | 'pooki' | 'gothic' | 'natural';
+type Theme = 'light' | 'dark' | 'pookie' | 'gothic' | 'natural';
 
 interface Particle {
   id: string;
@@ -20,7 +20,7 @@ export default function ThemeAnimations() {
       const html = document.documentElement;
       const body = document.body;
       
-      if (body.classList.contains('pooki') || html.classList.contains('pooki')) return 'pooki';
+      if (body.classList.contains('pookie') || html.classList.contains('pookie')) return 'pookie';
       if (body.classList.contains('gothic') || html.classList.contains('gothic')) return 'gothic';
       if (body.classList.contains('natural') || html.classList.contains('natural')) return 'natural';
       if (body.classList.contains('dark') || html.classList.contains('dark')) return 'dark';
@@ -58,11 +58,11 @@ export default function ThemeAnimations() {
       }, duration);
     };
 
-    const spawnPooki = () => {
+    const spawnPookie = () => {
       const count = Math.floor(Math.random() * 2) + 3;
       for (let i = 0; i < count; i++) {
         setTimeout(() => {
-          addParticle('pooki', {
+          addParticle('pookie', {
             left: `${Math.random() * 100}%`,
             bottom: '0',
           }, 8000);
@@ -135,9 +135,9 @@ export default function ThemeAnimations() {
 
     // Start animations based on theme
     switch (theme) {
-      case 'pooki':
-        spawnPooki();
-        intervals.push(setInterval(spawnPooki, 10000));
+      case 'pookie':
+        spawnPookie();
+        intervals.push(setInterval(spawnPookie, 10000));
         break;
       
       case 'natural':

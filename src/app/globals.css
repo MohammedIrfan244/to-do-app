@@ -144,7 +144,7 @@ body {
     --sidebar-ring: oklch(0.439 0 0);
   }
   
-  .pooki {
+  .pookie {
     --sidebar: oklch(0.99 0.02 340); /* Lighter Sidebar */
     --sidebar-foreground: oklch(0.35 0.1 330);
     --sidebar-primary: oklch(0.75 0.18 335);
@@ -214,8 +214,8 @@ body {
   --sidebar-ring: oklch(0.553 0.013 58.071);
 }
 
-/* --- POOKI (Pink/Soft) --- */
-.pooki {
+/* --- POOKIE (Pink/Soft) --- */
+.pookie {
   --radius: 1.25rem;
   /* Was 0.96 -> Now 0.99 (Lighter) */
   --background: oklch(0.99 0.01 340);

@@ -12,7 +12,7 @@ export function ThemeProvider({
       attribute="class"
       defaultTheme="system"
       enableSystem
-      themes={['light', 'dark', 'pooki', 'gothic', 'natural']}
+      themes={['light', 'dark', 'pookie', 'gothic', 'natural']}
       {...props}
     >
       {children}
