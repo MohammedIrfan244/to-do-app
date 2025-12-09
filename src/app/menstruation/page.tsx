@@ -1,4 +1,4 @@
-import Menstruation from '@/components/mesnstruation/menstruation'
+import Menstruation from '@/components/pages/mesnstruation/menstruation'
 import React from 'react'
 
 function MenstruationPage() {

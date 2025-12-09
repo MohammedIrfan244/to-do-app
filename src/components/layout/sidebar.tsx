@@ -45,7 +45,6 @@ export default function Sidebar() {
   const router = useRouter();
   const { state } = useSidebar();
   const isOpen = state === "expanded";
-
   const { theme } = useTheme(); 
 
   return (

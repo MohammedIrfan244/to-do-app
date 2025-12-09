@@ -260,7 +260,7 @@ body {
   --chart-5: oklch(0.9 0.08 335);
 }
 
-/* --- GOTHIC (Vampire Red/Black/Purple - Sharp Edges) --- */
+/* --- GOTHIC --- */
 .gothic {
   --radius: 0.2rem;
   /* Was 0.10 -> Now 0.16 (Lighter Dark) */

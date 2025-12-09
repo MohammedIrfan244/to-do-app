@@ -1,4 +1,4 @@
-import Calendar from '@/components/calendar/calendar'
+import Calendar from '@/components/pages/calendar/calendar'
 import React from 'react'
 
 function CalendarPage() {

@@ -1,7 +1,13 @@
+import { ISortOption } from "./api";
 
 export type ITodoStatus = 'PLAN' | 'PENDING' | 'DONE' | 'CANCELLED' | 'OVERDUE' | 'ARCHIVED';
 export type IPriority = 'LOW' | 'MEDIUM' | 'HIGH';
 export type IRenewInterval = 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY' | 'CUSTOM';
+export const prioritySortValues : Record<IPriority, number> = {
+  'HIGH': 3,
+  'MEDIUM': 2,
+  'LOW': 1,
+};
 
 export interface ITodo {
   id: string;
@@ -20,6 +26,24 @@ export interface ITodo {
   completedAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface ITodoFilterOptions {
+  staus?: ITodoStatus[] | null;
+  priority?: IPriority[] | null;
+  tags?: string[] | null;
+  query?: string | null;
+  createdAtSort? : ISortOption | null;
+  dueDateSort? : ISortOption | null;
+  prioritySort? : ISortOption | null;
+}
+
+export interface IGetTodoListPayload {
+  id: string;
+  title: string;
+  status: ITodoStatus;
+  priority?: IPriority | null;
+  dueDate?: Date | null;
 }
 
 export interface IChecklistItem {

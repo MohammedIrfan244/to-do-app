@@ -5,3 +5,5 @@ export interface IApiResponse<T> {
   data?: T;
   error?: string | null;
 }
+
+export type ISortOption = 'ASC' | 'DESC';

@@ -1,4 +1,4 @@
-import Dashboard from "@/components/dashboard/dashboard";
+import Dashboard from "@/components/pages/dashboard/dashboard";
 export const metadata = {
   title: "Home - DURIO",
   description: "Your personal daily companion",

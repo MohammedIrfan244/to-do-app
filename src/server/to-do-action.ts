@@ -2,7 +2,7 @@
 import { withErrorWrapper } from "@/lib/server-utils/error-wrapper";
 import { prisma } from "@/lib/prisma";
 import { getUserId } from "@/lib/server-utils/get-user";
-import { ITodo } from "@/types/todo";
+import { ITodo , IGetTodoListPayload } from "@/types/todo";
 import { createTodoSchema } from "@/schema/todo";
 import { z } from "zod";
 
@@ -39,3 +39,4 @@ export const createTodo = withErrorWrapper<ITodo , [CreateTodoInput]>(async (inp
 
   return todo as ITodo;
 }); 
+

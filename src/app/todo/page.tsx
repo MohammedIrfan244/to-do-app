@@ -1,4 +1,4 @@
-import TodoAPP from '@/components/todo/todo'
+import TodoAPP from '@/components/pages/todo/todo'
 import React from 'react'
 
 export const metadata = {
