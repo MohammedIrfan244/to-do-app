@@ -1,13 +1,41 @@
 "use server";
-import { withErrorWrapper } from "@/lib/server-utils/error-wrapper";
+import { withErrorWrapper, AppError } from "@/lib/server-utils/error-wrapper";
 import { prisma } from "@/lib/prisma";
 import { getUserId } from "@/lib/server-utils/get-user";
-import { ITodo , IGetTodoListPayload } from "@/types/todo";
-import { createTodoSchema } from "@/schema/todo";
+import { ITodo , IGetTodoListPayload, ITodoStatus } from "@/types/todo";
+import { 
+  createTodoSchema, 
+  getTodoByIdSchema, 
+  searchTodoSchema, 
+  todoFilterSchema,
+  updateTodoSchema,
+  deleteTodoSchema,
+  bulkDeleteTodoSchema,
+  changeTodoStatusSchema,
+  bulkChangeTodoStatusSchema,
+  markChecklistItemSchema,
+  restoreTodoFromArchiveSchema
+} from "@/schema/todo";
 import { z } from "zod";
+import type { Prisma } from "@prisma/client";
+import { today } from "@/lib/helper/today";
 
+
+// Infer types from Zod schemas
 type CreateTodoInput = z.infer<typeof createTodoSchema>;
+type TodoFilterInput = z.infer<typeof todoFilterSchema>;
+type SearchTodoInput = z.infer<typeof searchTodoSchema>;
+type GetTodoByIdInput = z.infer<typeof getTodoByIdSchema>;
+type UpdateTodoInput = z.infer<typeof updateTodoSchema>;
+type DeleteTodoInput = z.infer<typeof deleteTodoSchema>;
+type BulkDeleteTodoInput = z.infer<typeof bulkDeleteTodoSchema>;
+type ChangeTodoStatusInput = z.infer<typeof changeTodoStatusSchema>;
+type BulkChangeTodoStatusInput = z.infer<typeof bulkChangeTodoStatusSchema>;
+type MarkChecklistItemInput = z.infer<typeof markChecklistItemSchema>;
+type RestoreTodoFromArchiveInput = z.infer<typeof restoreTodoFromArchiveSchema>;
 
+
+// Action to create a new to-do item
 export const createTodo = withErrorWrapper<ITodo , [CreateTodoInput]>(async (input: CreateTodoInput): Promise<ITodo> => {
   const validatedInput = createTodoSchema.parse(input);
   
@@ -18,11 +46,12 @@ export const createTodo = withErrorWrapper<ITodo , [CreateTodoInput]>(async (inp
       userId,
       title: validatedInput.title,
       description: validatedInput.description,
-      status: (validatedInput.status || "PLAN") as "PLAN" | "PENDING" | "DONE" | "CANCELLED" | "OVERDUE" | "ARCHIVED",
+      status: (validatedInput.status || "PLAN") as ITodoStatus,
       priority: validatedInput.priority,
       tags: validatedInput.tags || [],
       dueDate: validatedInput.dueDate ? new Date(validatedInput.dueDate) : undefined,
       dueTime: validatedInput.dueTime,
+      renewStart: validatedInput.renewStart ? new Date(validatedInput.renewStart) : undefined,
       renewInterval: validatedInput.renewInterval,
       renewEvery: validatedInput.renewEvery,
       renewCustom: validatedInput.renewCustom,
@@ -40,3 +69,499 @@ export const createTodo = withErrorWrapper<ITodo , [CreateTodoInput]>(async (inp
   return todo as ITodo;
 }); 
 
+// Action to get a list of to-do items with optional filtering and sorting
+export const getTodoList = withErrorWrapper<IGetTodoListPayload[], [TodoFilterInput]>(async (filters: TodoFilterInput): Promise<IGetTodoListPayload[]> => {
+  const validatedFilters = todoFilterSchema.parse(filters);
+  const userId = await getUserId();
+
+  const where: Prisma.TodoWhereInput = { userId };
+
+  if (validatedFilters.status) {
+    where.status = validatedFilters.status;
+  }
+
+  if (validatedFilters.priority) {
+    where.priority = validatedFilters.priority;
+  }
+
+  if (validatedFilters.tags && validatedFilters.tags.length > 0) {
+    where.tags = { hasSome: validatedFilters.tags };
+  }
+
+  const orderBy: Prisma.TodoOrderByWithRelationInput[] = [];
+
+  if (validatedFilters.createdAtSort) {
+    orderBy.push({
+      createdAt: validatedFilters.createdAtSort === "ASC" ? "asc" : "desc",
+    });
+  }
+
+  if (validatedFilters.dueDateSort) {
+    orderBy.push({
+      dueDate: validatedFilters.dueDateSort === "ASC" ? "asc" : "desc",
+    });
+  }
+
+  if (validatedFilters.prioritySort) {
+    orderBy.push({
+      priority: validatedFilters.prioritySort === "ASC" ? "asc" : "desc",
+    });
+  }
+
+  if (orderBy.length === 0) {
+    orderBy.push({ createdAt: "desc" });
+  }
+
+  const todos = await prisma.todo.findMany({
+    where,
+    orderBy,
+    select: {
+      id: true,
+      title: true,
+      status: true,
+      priority: true,
+      dueDate: true,
+      renewStart: true,
+      renewInterval: true,
+      renewEvery: true,
+    },
+  });
+
+  // Filter renewal tasks to only include those on their renewal day
+  const filtered = todos.filter(todo => {
+    if (todo.renewStart && todo.renewInterval && todo.renewEvery) {
+      return isRenewalDay(todo.renewStart, todo.renewInterval, todo.renewEvery);
+    }
+    return true;
+  });
+
+  return filtered as IGetTodoListPayload[];
+});
+
+// Action to search to-do items by title or description
+export const searchTodos = withErrorWrapper<IGetTodoListPayload[], [SearchTodoInput]>(async (input: SearchTodoInput): Promise<IGetTodoListPayload[]> => {
+  const validatedInput = searchTodoSchema.parse(input);
+  const userId = await getUserId();
+
+  const todos = await prisma.todo.findMany({
+    where: {
+      userId,
+      OR: [
+        {
+          title: {
+            contains: validatedInput.query,
+            mode: "insensitive",
+          },
+        },
+        {
+          description: {
+            contains: validatedInput.query,
+            mode: "insensitive",
+          },
+        },
+      ],
+    },
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      title: true,
+      status: true,
+      priority: true,
+      dueDate: true,
+    },
+  });
+
+  return todos as IGetTodoListPayload[];
+});
+
+// Action to get a specific to-do item by ID
+export const getTodoById = withErrorWrapper<ITodo, [GetTodoByIdInput]>(async (input: GetTodoByIdInput): Promise<ITodo> => {
+  const validatedInput = getTodoByIdSchema.parse(input);
+  const userId = await getUserId();
+
+  const todo = await prisma.todo.findFirst({
+    where: {
+      id: validatedInput.id,
+      userId,
+    },
+    include: {
+      checklist: true,
+    },
+  });
+
+  if (!todo) {
+    const error = new Error("Todo not found") as AppError;
+    error.code = "TODO_NOT_FOUND";
+    throw error;
+  }
+
+  return todo as ITodo;
+});
+
+// Action to update a to-do item
+export const updateTodo = withErrorWrapper<ITodo, [UpdateTodoInput]>(async (input: UpdateTodoInput): Promise<ITodo> => {
+  const validatedInput = updateTodoSchema.parse(input);
+  const userId = await getUserId();
+
+  // Verify user owns this todo
+  const existingTodo = await prisma.todo.findFirst({
+    where: { id: validatedInput.id, userId },
+  });
+
+  if (!existingTodo) {
+    const error = new Error("Todo not found") as AppError;
+    error.code = "TODO_NOT_FOUND";
+    throw error;
+  }
+
+  // Handle checklist updates
+  if (validatedInput.checklist) {
+    // Delete all existing checklist items and create new ones
+    await prisma.checklistItem.deleteMany({
+      where: { todoId: validatedInput.id },
+    });
+  }
+
+  const todo = await prisma.todo.update({
+    where: { id: validatedInput.id },
+    data: {
+      title: validatedInput.title,
+      description: validatedInput.description,
+      priority: validatedInput.priority,
+      tags: validatedInput.tags,
+      dueDate: validatedInput.dueDate ? new Date(validatedInput.dueDate) : undefined,
+      dueTime: validatedInput.dueTime,
+      renewStart: validatedInput.renewStart ? new Date(validatedInput.renewStart) : undefined,
+      renewInterval: validatedInput.renewInterval,
+      renewEvery: validatedInput.renewEvery,
+      renewCustom: validatedInput.renewCustom,
+      status: validatedInput.status as ITodoStatus,
+      checklist: validatedInput.checklist ? {
+        create: validatedInput.checklist.map(item => ({
+          text: item.text,
+        })),
+      } : undefined,
+    },
+    include: {
+      checklist: true,
+    },
+  });
+
+  return todo as ITodo;
+});
+
+// Action to hard delete a to-do item (permanent deletion)
+export const deleteTodo = withErrorWrapper<void, [DeleteTodoInput]>(async (input: DeleteTodoInput): Promise<void> => {
+  const validatedInput = deleteTodoSchema.parse(input);
+  const userId = await getUserId();
+
+  const todo = await prisma.todo.findFirst({
+    where: { id: validatedInput.id, userId },
+  });
+
+  if (!todo) {
+    const error = new Error("Todo not found") as AppError;
+    error.code = "TODO_NOT_FOUND";
+    throw error;
+  }
+
+  // Delete checklist items first
+  await prisma.checklistItem.deleteMany({
+    where: { todoId: validatedInput.id },
+  });
+
+  // Delete the todo
+  await prisma.todo.delete({
+    where: { id: validatedInput.id },
+  });
+});
+
+// Action to soft delete a to-do item (archive)
+export const softDeleteTodo = withErrorWrapper<ITodo, [DeleteTodoInput]>(async (input: DeleteTodoInput): Promise<ITodo> => {
+  const validatedInput = deleteTodoSchema.parse(input);
+  const userId = await getUserId();
+
+  const todo = await prisma.todo.findFirst({
+    where: { id: validatedInput.id, userId },
+  });
+
+  if (!todo) {
+    const error = new Error("Todo not found") as AppError;
+    error.code = "TODO_NOT_FOUND";
+    throw error;
+  }
+
+  return await prisma.todo.update({
+    where: { id: validatedInput.id },
+    data: { status: "ARCHIVED" },
+    include: { checklist: true },
+  }) as ITodo;
+});
+
+// Action to bulk delete to-do items (permanent deletion)
+export const bulkDeleteTodos = withErrorWrapper<void, [BulkDeleteTodoInput]>(async (input: BulkDeleteTodoInput): Promise<void> => {
+  const validatedInput = bulkDeleteTodoSchema.parse(input);
+  const userId = await getUserId();
+
+  // Verify all todos belong to user
+  const todos = await prisma.todo.findMany({
+    where: { id: { in: validatedInput.ids }, userId },
+  });
+
+  if (todos.length !== validatedInput.ids.length) {
+    const error = new Error("Some todos not found or don't belong to you") as AppError;
+    error.code = "UNAUTHORIZED";
+    throw error;
+  }
+
+  // Delete checklist items
+  await prisma.checklistItem.deleteMany({
+    where: { todoId: { in: validatedInput.ids } },
+  });
+
+  // Delete todos
+  await prisma.todo.deleteMany({
+    where: { id: { in: validatedInput.ids } },
+  });
+});
+
+// Action to bulk soft delete to-do items (archive)
+export const bulkSoftDeleteTodos = withErrorWrapper<ITodo[], [BulkDeleteTodoInput]>(async (input: BulkDeleteTodoInput): Promise<ITodo[]> => {
+  const validatedInput = bulkDeleteTodoSchema.parse(input);
+  const userId = await getUserId();
+
+  const todos = await prisma.todo.findMany({
+    where: { id: { in: validatedInput.ids }, userId },
+  });
+
+  if (todos.length !== validatedInput.ids.length) {
+    const error = new Error("Some todos not found or don't belong to you") as AppError;
+    error.code = "UNAUTHORIZED";
+    throw error;
+  }
+
+  const updatedTodos = await Promise.all(
+    validatedInput.ids.map(id =>
+      prisma.todo.update({
+        where: { id },
+        data: { status: "ARCHIVED" },
+        include: { checklist: true },
+      })
+    )
+  );
+
+  return updatedTodos as ITodo[];
+});
+
+// Action to change status of a single to-do
+export const changeTodoStatus = withErrorWrapper<ITodo, [ChangeTodoStatusInput]>(async (input: ChangeTodoStatusInput): Promise<ITodo> => {
+  const validatedInput = changeTodoStatusSchema.parse(input);
+  const userId = await getUserId();
+
+  const todo = await prisma.todo.findFirst({
+    where: { id: validatedInput.id, userId },
+  });
+
+  if (!todo) {
+    const error = new Error("Todo not found") as AppError;
+    error.code = "TODO_NOT_FOUND";
+    throw error;
+  }
+
+  // Update completedAt if status is DONE
+  const completedAt = validatedInput.status === "DONE" ? new Date() : null;
+
+  return await prisma.todo.update({
+    where: { id: validatedInput.id },
+    data: { status: validatedInput.status as ITodoStatus, completedAt },
+    include: { checklist: true },
+  }) as ITodo;
+});
+
+// Action to bulk change status
+export const bulkChangeTodoStatus = withErrorWrapper<ITodo[], [BulkChangeTodoStatusInput]>(async (input: BulkChangeTodoStatusInput): Promise<ITodo[]> => {
+  const validatedInput = bulkChangeTodoStatusSchema.parse(input);
+  const userId = await getUserId();
+
+  const todos = await prisma.todo.findMany({
+    where: { id: { in: validatedInput.ids }, userId },
+  });
+
+  if (todos.length !== validatedInput.ids.length) {
+    const error = new Error("Some todos not found or don't belong to you") as AppError;
+    error.code = "UNAUTHORIZED";
+    throw error;
+  }
+
+  const completedAt = validatedInput.status === "DONE" ? new Date() : null;
+
+  const updatedTodos = await Promise.all(
+    validatedInput.ids.map(id =>
+      prisma.todo.update({
+        where: { id },
+        data: { status: validatedInput.status as ITodoStatus, completedAt },
+        include: { checklist: true },
+      })
+    )
+  );
+
+  return updatedTodos as ITodo[];
+});
+
+// Action to mark/unmark a checklist item
+export const markChecklistItem = withErrorWrapper<ITodo, [MarkChecklistItemInput]>(async (input: MarkChecklistItemInput): Promise<ITodo> => {
+  const validatedInput = markChecklistItemSchema.parse(input);
+  const userId = await getUserId();
+
+  const todo = await prisma.todo.findFirst({
+    where: { id: validatedInput.todoId, userId },
+  });
+
+  if (!todo) {
+    const error = new Error("Todo not found") as AppError;
+    error.code = "TODO_NOT_FOUND";
+    throw error;
+  }
+
+  const checklistItem = await prisma.checklistItem.findUnique({
+    where: { id: validatedInput.checklistItemId },
+  });
+
+  if (!checklistItem) {
+    const error = new Error("Checklist item not found") as AppError;
+    error.code = "CHECKLIST_ITEM_NOT_FOUND";
+    throw error;
+  }
+
+  // Toggle the marked status
+  await prisma.checklistItem.update({
+    where: { id: validatedInput.checklistItemId },
+    data: { marked: !checklistItem.marked },
+  });
+
+  return await prisma.todo.findUniqueOrThrow({
+    where: { id: validatedInput.todoId },
+    include: { checklist: true },
+  }) as ITodo;
+});
+
+// Helper function to check if a date is a renewal day
+function isRenewalDay(renewStart: Date | null, renewInterval: string | null, renewEvery: number | null): boolean {
+  if (!renewStart || !renewInterval || !renewEvery) return false;
+
+  const currentDate = today();
+  const startDate = new Date(renewStart);
+  startDate.setHours(0, 0, 0, 0);
+
+  const daysDifference = Math.floor((currentDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+
+  if (daysDifference < 0) return false; // Hasn't started yet
+
+  switch (renewInterval) {
+    case "DAILY":
+      return daysDifference % renewEvery === 0;
+    case "WEEKLY":
+      return daysDifference % (renewEvery * 7) === 0;
+    case "MONTHLY":
+      // Simplified: check if it's the right day of month
+      return currentDate.getDate() === startDate.getDate() && daysDifference % (renewEvery * 30) === 0;
+    case "YEARLY":
+      return daysDifference % (renewEvery * 365) === 0;
+    default:
+      return false;
+  }
+}
+
+// Action to get today's todos (due today, overdue, and renewal tasks)
+export const getTodayTodos = withErrorWrapper<IGetTodoListPayload[], []>(async (): Promise<IGetTodoListPayload[]> => {
+  const userId = await getUserId();
+  const currentDate = today();
+  const tomorrow = new Date(currentDate);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  const todos = await prisma.todo.findMany({
+    where: {
+      userId,
+      NOT: { status: "ARCHIVED" },
+      OR: [
+        // Due today
+        {
+          dueDate: {
+            gte: currentDate,
+            lt: tomorrow,
+          },
+        },
+        // Overdue
+        {
+          dueDate: { lt: currentDate },
+          status: { not: "DONE" },
+        },
+      ],
+    },
+    orderBy: { dueDate: "asc" },
+    select: {
+      id: true,
+      title: true,
+      status: true,
+      priority: true,
+      dueDate: true,
+      renewStart: true,
+      renewInterval: true,
+      renewEvery: true,
+    },
+  });
+
+  // Filter renewal tasks to only include those on their renewal day
+  const filtered = todos.filter(todo => {
+    if (todo.renewStart && todo.renewInterval && todo.renewEvery) {
+      return isRenewalDay(todo.renewStart, todo.renewInterval, todo.renewEvery);
+    }
+    return true;
+  });
+
+  return filtered as IGetTodoListPayload[];
+});
+
+// Action to get all archived todos
+export const getArchivedTodos = withErrorWrapper<IGetTodoListPayload[], []>(async (): Promise<IGetTodoListPayload[]> => {
+  const userId = await getUserId();
+
+  const todos = await prisma.todo.findMany({
+    where: {
+      userId,
+      status: "ARCHIVED",
+    },
+    orderBy: { updatedAt: "desc" },
+    select: {
+      id: true,
+      title: true,
+      status: true,
+      priority: true,
+      dueDate: true,
+    },
+  });
+
+  return todos as IGetTodoListPayload[];
+});
+
+// Action to restore a todo from archive
+export const restoreFromArchive = withErrorWrapper<ITodo, [RestoreTodoFromArchiveInput]>(async (input: RestoreTodoFromArchiveInput): Promise<ITodo> => {
+  const validatedInput = restoreTodoFromArchiveSchema.parse(input);
+  const userId = await getUserId();
+
+  const todo = await prisma.todo.findFirst({
+    where: { id: validatedInput.id, userId, status: "ARCHIVED" },
+  });
+
+  if (!todo) {
+    const error = new Error("Archived todo not found") as AppError;
+    error.code = "TODO_NOT_FOUND";
+    throw error;
+  }
+
+  return await prisma.todo.update({
+    where: { id: validatedInput.id },
+    data: { status: "PLAN" },
+    include: { checklist: true },
+  }) as ITodo;
+});

@@ -67,6 +67,7 @@ model Todo {
   dueTime     String?
 
   // Recurring
+  renewStart   DateTime?
   renewInterval RenewInterval?
   renewEvery    Int?
   renewCustom   String?
