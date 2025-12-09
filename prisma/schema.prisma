@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,45 +7,122 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ---------------------------------------------------------
+//  USER
+// ---------------------------------------------------------
+
 model User {
-  id    String  @id @default(auto()) @map("_id") @db.ObjectId
-  name  String?
-  email String  @unique
-  createdAt DateTime @default(now())
+  id         String        @id @default(auto()) @map("_id") @db.ObjectId
+  name       String?
+  email      String        @unique
+  todos      Todo[]
+  todoStreak TodoStreak?   // streak only for todos
+  createdAt  DateTime      @default(now())
+  notifications Notification[]
 }
 
+// ---------------------------------------------------------
+//  ENUMS - TODO
+// ---------------------------------------------------------
+
+enum TodoStatus {
+  PLAN
+  PENDING
+  DONE
+  CANCELLED
+  OVERDUE
+  ARCHIVED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum RenewInterval {
+  DAILY
+  WEEKLY
+  MONTHLY
+  YEARLY
+  CUSTOM
+}
+
+// ---------------------------------------------------------
+//  TODO
+// ---------------------------------------------------------
 
 model Todo {
-  id        String    @id @default(auto()) @map("_id") @db.ObjectId
-  title     String
-  description String?
-  completed Boolean  @default(false)
+  id     String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId String   @db.ObjectId
+  user   User     @relation(fields: [userId], references: [id])
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-// Add this to your schema.prisma file
-
-model Note {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  title     String
-  content   String
-  color     String   @default("#ffffff") 
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model CalendarEvent {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
   title       String
   description String?
-  start       DateTime
-  end         DateTime?
-  type        String   @default("event") // "event" or "anniversary"
-  color       String
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  status      TodoStatus
+  priority    Priority?
+  tags        String[] @default([])
+
+  dueDate     DateTime?
+  dueTime     String?
+
+  // Recurring
+  renewInterval RenewInterval?
+  renewEvery    Int?
+  renewCustom   String?
+
+  // Checklist
+  checklist ChecklistItem[]
+
+  // Completion tracking
+  completedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ---------------------------------------------------------
+//  CHECKLIST ITEMS
+// ---------------------------------------------------------
+
+model ChecklistItem {
+  id     String   @id @default(auto()) @map("_id") @db.ObjectId
+  todoId String   @db.ObjectId
+  todo   Todo     @relation(fields: [todoId], references: [id])
+
+  text   String
+  marked Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ---------------------------------------------------------
+//  TODO STREAK
+// ---------------------------------------------------------
+
+model TodoStreak {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String   @unique @db.ObjectId
+  user          User     @relation(fields: [userId], references: [id])
+
+  count         Int      @default(0)
+  longest       Int      @default(0)
+  lastCompleted DateTime?
+}
+
+// ---------------------------------------------------------
+//  NOTIFICATIONS
+// ---------------------------------------------------------
+
+model Notification {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+
+  message   String
+  date      DateTime // when to notify
+  read      Boolean  @default(false)
+
+  createdAt DateTime @default(now())
 }

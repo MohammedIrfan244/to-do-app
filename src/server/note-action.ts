@@ -1,6 +1,6 @@
 "use server"
 
-import { error, info, success } from "@/lib/logger"
+import { error, info, success } from "@/lib/helper/logger"
 import { prisma } from "@/lib/prisma"
 import { ActionResponse, CreateNote, DeleteNote, GetNotes, Note, SingleNoteResponse, UpdateNote } from "@/types/note"
 

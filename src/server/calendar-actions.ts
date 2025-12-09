@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { CreateCalendarEvent, UpdateCalendarEvent , CalendarEvent } from "@/types/calendar";
-import { info, error, success, warn } from "@/lib/logger";
+import { info, error, success, warn } from "@/lib/helper/logger";
 
 export const getEvents = async () => {
   try {

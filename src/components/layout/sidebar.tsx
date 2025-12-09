@@ -54,7 +54,7 @@ export default function Sidebar() {
         <SidebarHeader className="px-5">
           {isOpen ? (
             <Link href="/" className="flex flex-col border-b pb-4 pt-2 space-y-1">
-              <h2 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight title-animate title">
+              <h2 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight title-animate title"> 
                 DURIO
               </h2>
               <p className="text-xs md:text-sm tracking-tight text-slate-400 mt-1">

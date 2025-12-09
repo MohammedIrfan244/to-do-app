@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 
 import { navItems } from "@/lib/nav";
-import { formatName } from "@/lib/name-formatter";
+import { formatName } from "@/lib/helper/name-formatter";
 
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { ModeToggle } from "@/components/ui/mode-toggle";

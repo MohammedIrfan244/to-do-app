@@ -1,6 +1,14 @@
 "use client";
 
-import { X, ShieldCheck, Mail } from "lucide-react";
+import { ShieldCheck, Mail } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogClose,
+} from "@/components/ui/dialog";
 
 interface PrivacyModalProps {
   open: boolean;
@@ -8,58 +16,53 @@ interface PrivacyModalProps {
 }
 
 export default function PrivacyModal({ open, onClose }: PrivacyModalProps) {
-  if (!open) return null;
-
   return (
-    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-white w-[420px] max-w-[90vw] rounded-xl shadow-xl border border-slate-200 p-6 relative">
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-md border-border bg-background">
+        <DialogHeader>
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="text-foreground" size={20} />
+            <DialogTitle className="text-lg font-semibold text-foreground">
+              Privacy Policy
+            </DialogTitle>
+          </div>
+          <DialogDescription className="sr-only">
+            Our Google sign-in privacy details.
+          </DialogDescription>
+        </DialogHeader>
 
-        {/* close button */}
-        <button
-          onClick={onClose}
-          className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 cursor-pointer"
-        >
-          <X size={18} />
-        </button>
-
-        <div className="flex items-center gap-2 mb-3">
-          <ShieldCheck size={20} className="text-slate-900" />
-          <h2 className="text-lg font-semibold text-slate-900">
-            Privacy Policy
-          </h2>
-        </div>
-
-        <div className="text-sm text-slate-700 space-y-3">
+        <div className="text-sm text-foreground/80 space-y-4">
 
           <p>
             When signing in with Google, we only receive your{" "}
-            <strong>username and email address</strong>. We do not collect or request any additional access.
+            <strong>username and email address</strong>. No additional access is requested.
           </p>
 
           <p>
             Everything you create inside DURIO — tasks, notes, journal entries,
-            calendar items, habit logs, etc — stays securely stored in our database.
+            calendar items, habit logs, and more — remains securely stored.
           </p>
 
           <p>
-            No one besides you can access your data without proper authentication.
+            Only you can access your data — authentication is required at every step.
           </p>
 
           <p>
-            If you ever want your data deleted, exported, or if you have a concern,
-            you can contact us anytime at:
+            Need data deletion, export, or support? Contact us anytime:
           </p>
 
-          <p className="flex items-center gap-2 text-slate-600">
-            <Mail size={16} /> 
+          <p className="flex items-center gap-2 text-foreground/70">
+            <Mail size={16} />
             <span>zemdevwork@gmail.com</span>
           </p>
 
           <p>
-            Have an exciting experience and thank you for trusting DURIO with your productivity!
+            Thank you for trusting DURIO with your productivity!
           </p>
         </div>
-      </div>
-    </div>
+
+        <DialogClose className="absolute right-4 top-4" />
+      </DialogContent>
+    </Dialog>
   );
 }

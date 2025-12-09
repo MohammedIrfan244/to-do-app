@@ -6,15 +6,12 @@ export default function DarkDecor({ stars = 40 }: { stars?: number }) {
 
   return (
     <div className="sidebar-decorations" aria-hidden>
-      
-      {/* drifting moon */}
       <div className="dark-moon" />
 
-      {/* MANY tiny drifting stars */}
       {items.map((_, i) => {
         const left = Math.random() * 100;
-        const top = 6 + Math.random() * 90;  // avoid top edge where moon is
-        const delay = Math.random() * -10;   // random negative delays
+        const top = 6 + Math.random() * 90; 
+        const delay = Math.random() * -10;
         const duration = 5 + Math.random() * 6;
 
         return (

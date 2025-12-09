@@ -1,50 +1,49 @@
 
+export type ITodoStatus = 'PLAN' | 'PENDING' | 'DONE' | 'CANCELLED' | 'OVERDUE' | 'ARCHIVED';
+export type IPriority = 'LOW' | 'MEDIUM' | 'HIGH';
+export type IRenewInterval = 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY' | 'CUSTOM';
 
-export interface Todo {
-    id: string;
-    title: string;
-    description?: string;
-    completed: boolean;
-    createdAt: Date;
-    updatedAt: Date;
+export interface ITodo {
+  id: string;
+  userId: string;
+  title: string;
+  description?: string | null;
+  status: ITodoStatus;
+  priority?: IPriority | null;
+  tags: string[];
+  dueDate?: Date | null;
+  dueTime?: string | null;
+  renewInterval?: IRenewInterval | null;
+  renewEvery?: number | null;
+  renewCustom?: string | null;
+  checklist: IChecklistItem[];
+  completedAt?: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-export interface CreateTodo {
-    title: string;
-    description: string;
+export interface IChecklistItem {
+  id: string;
+  todoId: string;
+  text: string;
+  marked: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-export interface UpdateTodo {
-    id: string;
-    title: string;
-    description: string;
+export interface ITodoStreak {
+  id: string;
+  userId: string;
+  count: number;
+  longest: number;
+  lastCompleted?: Date | null;
 }
 
-export interface DeleteTodo {
-    id: string;
-}
-
-export interface GetTodos {
-    status: string;
-}
-
-export interface GetTodo {
-    id: string;
-}
-
-
-// action resonse
-
-
-export interface ActionResponse {
-    success: boolean;
-    message: string;
-    data?: Todo[];
-}
-
-
-export interface SingleTodoResponse {
-    success: boolean;
-    message: string;
-    data?: Todo;
+export interface ITodoNotification {
+  id: string;
+  userId: string;
+  message: string;
+  date: Date;
+  read: boolean;
+  createdAt: Date;
 }
