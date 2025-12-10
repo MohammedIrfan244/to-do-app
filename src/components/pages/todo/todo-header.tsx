@@ -113,7 +113,7 @@ export default function TodoHeader({
 
           {/* Today Mode Switch */}
           <Card
-            className="bg-secondary/30 p-3 sm:p-2 border-border/40 transition-all duration-300 hover:bg-secondary/50 hover:border-primary/20 cursor-pointer group flex items-center justify-between sm:justify-start group"
+            className="bg-secondary/30 p-3 sm:p-2 border-border/40 transition-all duration-300 hover:bg-secondary/50 hover:border-primary/20 group flex items-center justify-between sm:justify-start group"
             onClick={() => setTodayMode(!todayMode)}
           >
             <CardContent className="flex items-center gap-3 py-0 px-1 md:px-2">
