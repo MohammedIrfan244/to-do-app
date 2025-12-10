@@ -47,14 +47,14 @@ export const todoFilterSchema = z.object({
   status: z.enum(["PLAN", "PENDING", "DONE", "CANCELLED", "OVERDUE", "ARCHIVED"]).optional(),
   priority: z.enum(["LOW", "MEDIUM", "HIGH"]).optional(),
   tags: z.array(z.string()).optional(),
-  createdAtSort: z.enum(["ASC", "DESC"]).optional(),
-  dueDateSort: z.enum(["ASC", "DESC"]).optional(),
-  prioritySort: z.enum(["ASC", "DESC"]).optional(),
-});
-
-// Schema for searching to-do items by title or description
-export const searchTodoSchema = z.object({
-  query: z.string().min(1, "Search query cannot be empty"),
+  query : z.string().max(100, "Search query too long").optional(),
+  sortBy: z
+    .enum([
+      "CREATED_AT",
+      "DUE_DATE",
+      "PRIORITY",
+    ]).optional(),
+  sortOrder: z.enum(["ASC", "DESC"]).optional(),
 });
 
 // Schema for getting a specific to-do item by ID
@@ -126,3 +126,17 @@ export const markChecklistItemSchema = z.object({
 export const restoreTodoFromArchiveSchema = z.object({
   id: z.string().uuid("Invalid Todo ID"),
 });
+
+
+
+// type aliases for inferred types
+export type CreateTodoInput = z.infer<typeof createTodoSchema>;
+export type TodoFilterInput = z.infer<typeof todoFilterSchema>;
+export type GetTodoByIdInput = z.infer<typeof getTodoByIdSchema>;
+export type UpdateTodoInput = z.infer<typeof updateTodoSchema>;
+export type DeleteTodoInput = z.infer<typeof deleteTodoSchema>;
+export type BulkDeleteTodoInput = z.infer<typeof bulkDeleteTodoSchema>;
+export type ChangeTodoStatusInput = z.infer<typeof changeTodoStatusSchema>;
+export type BulkChangeTodoStatusInput = z.infer<typeof bulkChangeTodoStatusSchema>;
+export type MarkChecklistItemInput = z.infer<typeof markChecklistItemSchema>;
+export type RestoreTodoFromArchiveInput = z.infer<typeof restoreTodoFromArchiveSchema>;

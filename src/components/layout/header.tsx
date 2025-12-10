@@ -1,8 +1,9 @@
+// components/layout/Header.tsx (or wherever your Header is located)
 "use client";
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { useSession, signOut } from "next-auth/react";
+import { useSession } from "next-auth/react"; // signOut is no longer needed here
 
 import {
   LogOut,
@@ -32,16 +33,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogFooter,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogAction,
-  AlertDialogCancel,
-} from "@/components/ui/alert-dialog";
+// Remove AlertDialog imports
 
 import { Card, CardContent } from "@/components/ui/card";
 import { useTheme } from "next-themes";
@@ -50,11 +42,13 @@ import NaturalDecor from "../decoration/natural-decor";
 import GothicDecor from "../decoration/gothic-decor";
 import DarkDecor from "../decoration/dark-decor";
 import LightDecor from "../decoration/light-decor";
+import LogoutConfirmDialog from "../auth/logout-dialogue"; 
 
 export default function Header() {
   const pathname = usePathname();
   const { data: session } = useSession();
 
+  // 💡 State for the new dialog component
   const [confirmLogout, setConfirmLogout] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -248,24 +242,11 @@ export default function Header() {
         </div>
       </CardContent>
 
-      <AlertDialog open={confirmLogout} onOpenChange={setConfirmLogout}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Ready to leave?</AlertDialogTitle>
-            <AlertDialogDescription>
-              You are about to log out of your account.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => signOut({ callbackUrl: "/auth/login" })}
-            >
-              Log out
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* 💡 RENDER THE SEPARATE DIALOG COMPONENT HERE */}
+      <LogoutConfirmDialog
+        open={confirmLogout}
+        onOpenChange={setConfirmLogout}
+      />
     </Card>
   );
 }

@@ -2,11 +2,10 @@
 import { withErrorWrapper, AppError } from "@/lib/server-utils/error-wrapper";
 import { prisma } from "@/lib/prisma";
 import { getUserId } from "@/lib/server-utils/get-user";
-import { ITodo , IGetTodoListPayload, ITodoStatus } from "@/types/todo";
+import { ITodo , IGetTodoListPayload, ITodoStatus , IGetTodoTagsPayload } from "@/types/todo";
 import { 
   createTodoSchema, 
-  getTodoByIdSchema, 
-  searchTodoSchema, 
+  getTodoByIdSchema,
   todoFilterSchema,
   updateTodoSchema,
   deleteTodoSchema,
@@ -14,26 +13,47 @@ import {
   changeTodoStatusSchema,
   bulkChangeTodoStatusSchema,
   markChecklistItemSchema,
-  restoreTodoFromArchiveSchema
+  restoreTodoFromArchiveSchema,
+  CreateTodoInput,
+  TodoFilterInput,
+  GetTodoByIdInput,
+  UpdateTodoInput,
+  DeleteTodoInput,
+  BulkDeleteTodoInput,
+  ChangeTodoStatusInput,
+  BulkChangeTodoStatusInput,
+  MarkChecklistItemInput,
+  RestoreTodoFromArchiveInput
 } from "@/schema/todo";
-import { z } from "zod";
 import type { Prisma } from "@prisma/client";
 import { today } from "@/lib/helper/today";
 
+// Helper function to check if a date is a renewal day
+function isRenewalDay(renewStart: Date | null, renewInterval: string | null, renewEvery: number | null): boolean {
+  if (!renewStart || !renewInterval || !renewEvery) return false;
 
-// Infer types from Zod schemas
-type CreateTodoInput = z.infer<typeof createTodoSchema>;
-type TodoFilterInput = z.infer<typeof todoFilterSchema>;
-type SearchTodoInput = z.infer<typeof searchTodoSchema>;
-type GetTodoByIdInput = z.infer<typeof getTodoByIdSchema>;
-type UpdateTodoInput = z.infer<typeof updateTodoSchema>;
-type DeleteTodoInput = z.infer<typeof deleteTodoSchema>;
-type BulkDeleteTodoInput = z.infer<typeof bulkDeleteTodoSchema>;
-type ChangeTodoStatusInput = z.infer<typeof changeTodoStatusSchema>;
-type BulkChangeTodoStatusInput = z.infer<typeof bulkChangeTodoStatusSchema>;
-type MarkChecklistItemInput = z.infer<typeof markChecklistItemSchema>;
-type RestoreTodoFromArchiveInput = z.infer<typeof restoreTodoFromArchiveSchema>;
+  const currentDate = today();
+  const startDate = new Date(renewStart);
+  startDate.setHours(0, 0, 0, 0);
 
+  const daysDifference = Math.floor((currentDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+
+  if (daysDifference < 0) return false; // Hasn't started yet
+
+  switch (renewInterval) {
+    case "DAILY":
+      return daysDifference % renewEvery === 0;
+    case "WEEKLY":
+      return daysDifference % (renewEvery * 7) === 0;
+    case "MONTHLY":
+      // Simplified: check if it's the right day of month
+      return currentDate.getDate() === startDate.getDate() && daysDifference % (renewEvery * 30) === 0;
+    case "YEARLY":
+      return daysDifference % (renewEvery * 365) === 0;
+    default:
+      return false;
+  }
+}
 
 // Action to create a new to-do item
 export const createTodo = withErrorWrapper<ITodo , [CreateTodoInput]>(async (input: CreateTodoInput): Promise<ITodo> => {
@@ -73,45 +93,52 @@ export const createTodo = withErrorWrapper<ITodo , [CreateTodoInput]>(async (inp
 export const getTodoList = withErrorWrapper<IGetTodoListPayload[], [TodoFilterInput]>(async (filters: TodoFilterInput): Promise<IGetTodoListPayload[]> => {
   const validatedFilters = todoFilterSchema.parse(filters);
   const userId = await getUserId();
-
-  const where: Prisma.TodoWhereInput = { userId };
+  const andConditions: Prisma.TodoWhereInput[] = [{ userId }];
 
   if (validatedFilters.status) {
-    where.status = validatedFilters.status;
+    andConditions.push({ status: validatedFilters.status });
   }
 
   if (validatedFilters.priority) {
-    where.priority = validatedFilters.priority;
+    andConditions.push({ priority: validatedFilters.priority });
   }
 
   if (validatedFilters.tags && validatedFilters.tags.length > 0) {
-    where.tags = { hasSome: validatedFilters.tags };
+    andConditions.push({ tags: { hasSome: validatedFilters.tags } });
   }
 
+  if (validatedFilters.query) {
+    const q = validatedFilters.query;
+    andConditions.push({
+      OR: [
+        { title: { contains: q, mode: "insensitive" } },
+        { description: { contains: q, mode: "insensitive" } },
+        { tags: { has: q } },
+      ],
+    });
+  }
+
+  const where: Prisma.TodoWhereInput = andConditions.length === 1 ? andConditions[0] : { AND: andConditions };
   const orderBy: Prisma.TodoOrderByWithRelationInput[] = [];
-
-  if (validatedFilters.createdAtSort) {
-    orderBy.push({
-      createdAt: validatedFilters.createdAtSort === "ASC" ? "asc" : "desc",
-    });
+  const order = validatedFilters.sortOrder === "ASC" ? "asc" : 
+                validatedFilters.sortOrder === "DESC" ? "desc" : undefined;
+  
+  if (validatedFilters.sortBy && order) {
+    switch (validatedFilters.sortBy) {
+      case "CREATED_AT":
+        orderBy.push({ createdAt: order });
+        break;
+      case "DUE_DATE":
+        orderBy.push({ dueDate: order });
+        break;
+      case "PRIORITY":
+        orderBy.push({ priority: order }); 
+        break;
+    }
   }
-
-  if (validatedFilters.dueDateSort) {
-    orderBy.push({
-      dueDate: validatedFilters.dueDateSort === "ASC" ? "asc" : "desc",
-    });
-  }
-
-  if (validatedFilters.prioritySort) {
-    orderBy.push({
-      priority: validatedFilters.prioritySort === "ASC" ? "asc" : "desc",
-    });
-  }
-
   if (orderBy.length === 0) {
     orderBy.push({ createdAt: "desc" });
   }
-
   const todos = await prisma.todo.findMany({
     where,
     orderBy,
@@ -136,42 +163,6 @@ export const getTodoList = withErrorWrapper<IGetTodoListPayload[], [TodoFilterIn
   });
 
   return filtered as IGetTodoListPayload[];
-});
-
-// Action to search to-do items by title or description
-export const searchTodos = withErrorWrapper<IGetTodoListPayload[], [SearchTodoInput]>(async (input: SearchTodoInput): Promise<IGetTodoListPayload[]> => {
-  const validatedInput = searchTodoSchema.parse(input);
-  const userId = await getUserId();
-
-  const todos = await prisma.todo.findMany({
-    where: {
-      userId,
-      OR: [
-        {
-          title: {
-            contains: validatedInput.query,
-            mode: "insensitive",
-          },
-        },
-        {
-          description: {
-            contains: validatedInput.query,
-            mode: "insensitive",
-          },
-        },
-      ],
-    },
-    orderBy: { createdAt: "desc" },
-    select: {
-      id: true,
-      title: true,
-      status: true,
-      priority: true,
-      dueDate: true,
-    },
-  });
-
-  return todos as IGetTodoListPayload[];
 });
 
 // Action to get a specific to-do item by ID
@@ -445,33 +436,6 @@ export const markChecklistItem = withErrorWrapper<ITodo, [MarkChecklistItemInput
   }) as ITodo;
 });
 
-// Helper function to check if a date is a renewal day
-function isRenewalDay(renewStart: Date | null, renewInterval: string | null, renewEvery: number | null): boolean {
-  if (!renewStart || !renewInterval || !renewEvery) return false;
-
-  const currentDate = today();
-  const startDate = new Date(renewStart);
-  startDate.setHours(0, 0, 0, 0);
-
-  const daysDifference = Math.floor((currentDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-
-  if (daysDifference < 0) return false; // Hasn't started yet
-
-  switch (renewInterval) {
-    case "DAILY":
-      return daysDifference % renewEvery === 0;
-    case "WEEKLY":
-      return daysDifference % (renewEvery * 7) === 0;
-    case "MONTHLY":
-      // Simplified: check if it's the right day of month
-      return currentDate.getDate() === startDate.getDate() && daysDifference % (renewEvery * 30) === 0;
-    case "YEARLY":
-      return daysDifference % (renewEvery * 365) === 0;
-    default:
-      return false;
-  }
-}
-
 // Action to get today's todos (due today, overdue, and renewal tasks)
 export const getTodayTodos = withErrorWrapper<IGetTodoListPayload[], []>(async (): Promise<IGetTodoListPayload[]> => {
   const userId = await getUserId();
@@ -564,4 +528,16 @@ export const restoreFromArchive = withErrorWrapper<ITodo, [RestoreTodoFromArchiv
     data: { status: "PLAN" },
     include: { checklist: true },
   }) as ITodo;
+});
+
+export const getTodoTags = withErrorWrapper<IGetTodoTagsPayload[], []>(async (): Promise<IGetTodoTagsPayload[]> => {
+  const userId = await getUserId();
+  const todos = await prisma.todo.findMany({
+    where: { userId },
+    select: { tags: true },
+  });
+  const tags = todos.flatMap(todo => todo.tags);
+  const uniqueTags = Array.from(new Set(tags));
+  const tagPayload : IGetTodoTagsPayload[] = uniqueTags.map(tag => ({ tag, label: tag.toUpperCase() }));
+  return tagPayload;
 });

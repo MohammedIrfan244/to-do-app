@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
+// zod import not needed here (types come from schema)
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import {
@@ -35,8 +35,9 @@ import {
 
 import { Calendar } from "@/components/ui/calendar";
 import { createTodoSchema } from "@/schema/todo";
+import type { CreateTodoInput, UpdateTodoInput } from "@/schema/todo";
 import { IPriority, IRenewInterval } from "@/types/todo";
-import { createTodo } from "@/server/to-do-action";
+import { createTodo, updateTodo } from "@/server/to-do-action";
 import { toast } from "sonner";
 import {
   CheckSquare,
@@ -50,9 +51,13 @@ import {
 } from "lucide-react";
 import { formatDate } from "@/lib/helper/date-formatter";
 
-type CreateTodoInput = z.infer<typeof createTodoSchema>;
+type Props = {
+  initialData?: Partial<CreateTodoInput & { id?: string }>;
+  trigger?: React.ReactNode;
+  onSaved?: (todo?: unknown) => void;
+};
 
-export default function ToDoDialog() {
+export default function ToDoDialog({ initialData, trigger, onSaved }: Props) {
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
@@ -82,6 +87,38 @@ export default function ToDoDialog() {
     formState: { errors },
   } = form;
 
+  // When initialData is provided (edit mode), reset the form values
+  useEffect(() => {
+    if (!initialData) return;
+
+    type Src = Partial<CreateTodoInput> & {
+      dueTime?: string;
+      renewInterval?: IRenewInterval;
+      renewEvery?: number;
+      renewCustom?: string;
+      checklist?: { text?: string }[];
+      status?: string;
+    };
+
+    const src = initialData as Src;
+
+    const values: Partial<CreateTodoInput> = {
+      title: src.title || "",
+      description: src.description || undefined,
+      priority: src.priority || undefined,
+      tags: src.tags || [],
+      dueDate: src.dueDate ? new Date(src.dueDate as string | Date) : undefined,
+      dueTime: src.dueTime || undefined,
+      renewInterval: src.renewInterval || undefined,
+      renewEvery: src.renewEvery || undefined,
+      renewCustom: src.renewCustom || undefined,
+      checklist: src.checklist || [],
+      status: src.status || undefined,
+    };
+
+    reset(values as CreateTodoInput);
+  }, [initialData, reset]);
+
   const tags = watch("tags") || [];
   const checklist = watch("checklist") || [];
 
@@ -101,6 +138,22 @@ export default function ToDoDialog() {
 
   const submitForm = (data: CreateTodoInput) => {
     startTransition(async () => {
+      // If initialData has an id, we are editing
+      if (initialData && initialData.id) {
+        const payload = ({ id: initialData.id, ...data } as unknown) as UpdateTodoInput;
+        const res = await updateTodo(payload);
+
+        if (!res.success) {
+          toast.error(res.error?.message || "Oops, couldn't update that!");
+          return;
+        }
+
+        toast.success("Nice! Todo updated 🎉");
+        onSaved?.(res.data);
+        setOpen(false);
+        return;
+      }
+
       const res = await createTodo(data);
 
       if (!res.success) {
@@ -110,6 +163,7 @@ export default function ToDoDialog() {
 
       toast.success("Nice! Todo added 🎉");
       reset();
+      onSaved?.(res.data);
       setOpen(false);
     });
   };
@@ -117,9 +171,13 @@ export default function ToDoDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>
-          <Plus className="w-4 h-4 mr-2" /> New Todo
-        </Button>
+        {trigger ? (
+          trigger
+        ) : (
+          <Button>
+            <Plus className="w-4 h-4 mr-2" /> New Todo
+          </Button>
+        )}
       </DialogTrigger>
 
       <DialogContent className="bg-background text-foreground max-h-[90vh] overflow-y-auto max-w-4xl">

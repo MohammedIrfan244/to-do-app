@@ -26,17 +26,6 @@ export interface ITodo {
   updatedAt: Date;
 }
 
-export interface IGetTodoListPayload {
-  id: string;
-  title: string;
-  status: ITodoStatus;
-  priority?: IPriority | null;
-  dueDate?: Date | null;
-  renewStart?: Date | null;
-  renewInterval?: IRenewInterval | null;
-  renewEvery?: number | null;
-}
-
 export interface IChecklistItem {
   id: string;
   todoId: string;
@@ -62,3 +51,22 @@ export interface ITodoNotification {
   read: boolean;
   createdAt: Date;
 }
+
+
+// payloads
+
+export interface IGetTodoListPayload {
+  id: string;
+  title: string;
+  status: ITodoStatus;
+  priority?: IPriority | null;
+  dueDate?: Date | null;
+  renewStart?: Date | null;
+  renewInterval?: IRenewInterval | null;
+  renewEvery?: number | null;
+}
+
+  export interface IGetTodoTagsPayload {
+    tag: string;
+    label: string;
+  }

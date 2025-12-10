@@ -5,10 +5,10 @@ import { useTheme } from "next-themes";
 import { navItems } from "@/lib/nav";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { signOut } from "next-auth/react";
 import { useState } from "react";
 import { LogOut, Settings } from "lucide-react";
 import clsx from "clsx";
+import LogoutConfirmDialog from "../auth/logout-dialogue";
 
 import {
   SidebarContent,
@@ -21,16 +21,6 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogFooter,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogAction,
-  AlertDialogCancel,
-} from "@/components/ui/alert-dialog";
 
 /* decorations */
 import PookieFlowers from "@/components/decoration/pookie-flowers";
@@ -45,15 +35,18 @@ export default function Sidebar() {
   const router = useRouter();
   const { state } = useSidebar();
   const isOpen = state === "expanded";
-  const { theme } = useTheme(); 
+  const { theme } = useTheme();
 
   return (
     <>
       <div className="relative overflow-hidden h-screen flex flex-col justify-between">
         <SidebarHeader className="px-5">
           {isOpen ? (
-            <Link href="/" className="flex flex-col border-b pb-4 pt-2 space-y-1">
-              <h2 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight title-animate title"> 
+            <Link
+              href="/"
+              className="flex flex-col border-b pb-4 pt-2 space-y-1"
+            >
+              <h2 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight title-animate title">
                 DURIO
               </h2>
               <p className="text-xs md:text-sm tracking-tight text-slate-400 mt-1">
@@ -70,15 +63,27 @@ export default function Sidebar() {
           )}
         </SidebarHeader>
 
-        <SidebarContent className={clsx("pt-3 overflow-y-auto hide-scrollbar-on-main", isOpen ? "px-1" : "px-2")}>
+        <SidebarContent
+          className={clsx(
+            "pt-3 overflow-y-auto hide-scrollbar-on-main",
+            isOpen ? "px-1" : "px-2"
+          )}
+        >
           <SidebarMenu className="space-y-2">
             {navItems.map((item) => {
               const isActive = pathname === item.url;
               return (
                 <div key={item.url}>
                   <SidebarMenuItem key={item.url}>
-                    <SidebarMenuButton tooltip={item.label} isActive={isActive} asChild>
-                      <Link href={item.url} className="flex items-center gap-3 text-sm nav-item-group">
+                    <SidebarMenuButton
+                      tooltip={item.label}
+                      isActive={isActive}
+                      asChild
+                    >
+                      <Link
+                        href={item.url}
+                        className="flex items-center gap-3 text-sm nav-item-group"
+                      >
                         <span
                           style={{
                             color: item.color,
@@ -89,7 +94,11 @@ export default function Sidebar() {
                           {item.icon}
                         </span>
 
-                        {isOpen && <span className="relative top-[1px]">{item.label}</span>}
+                        {isOpen && (
+                          <span className="relative top-[1px]">
+                            {item.label}
+                          </span>
+                        )}
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -132,22 +141,10 @@ export default function Sidebar() {
         {theme === "light" && <LightDecor />}
       </div>
 
-      {/* ALERTDIALOG */}
-      <AlertDialog open={showSignOutModal} onOpenChange={setShowSignOutModal}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Sign out?</AlertDialogTitle>
-            <AlertDialogDescription>Are you sure you want to sign out of your account?</AlertDialogDescription>
-          </AlertDialogHeader>
-
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => signOut({ callbackUrl: "/auth/login" })}>
-              Sign out
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <LogoutConfirmDialog
+        open={showSignOutModal}
+        onOpenChange={setShowSignOutModal}
+      />
     </>
   );
 }
