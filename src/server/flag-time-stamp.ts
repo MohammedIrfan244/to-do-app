@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getUserId } from "@/lib/server-utils/get-user";
 import { today, nowWithTime , parseTimeStringToDate } from "@/lib/helper/today";
 
-export const flagTimestamp = withErrorWrapper<void, []>(async (): Promise<void> => {
+export const flagTimestamp = withErrorWrapper<string, []>(async (): Promise<string> => {
     const userId = await getUserId();
     const currentDateMidnight = today();
     const currentMoment = nowWithTime();
@@ -43,4 +43,6 @@ export const flagTimestamp = withErrorWrapper<void, []>(async (): Promise<void> 
             data: { status: "OVERDUE" }
         });
     }
+
+    return 'DONE';
 });

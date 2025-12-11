@@ -60,8 +60,8 @@ export default function Header() {
 
   const handleFlag = async () => {
     setLoading(true);
-    await withClientAction(() => flagTimestamp());
-    toast.success("Timestamp updated");
+    const response = await withClientAction(() => flagTimestamp(), true);
+    if(response==='DONE') toast.success('Timestamp Flagged');
     setLoading(false);
   };
 
