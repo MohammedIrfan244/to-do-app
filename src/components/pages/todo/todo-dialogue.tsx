@@ -50,6 +50,7 @@ import {
   Plus,
 } from "lucide-react";
 import { formatDate } from "@/lib/helper/date-formatter";
+import { withClientAction } from "@/lib/helper/with-client-action";
 
 type Props = {
   initialData?: Partial<CreateTodoInput & { id?: string }>;
@@ -87,7 +88,6 @@ export default function ToDoDialog({ initialData, trigger, onSaved }: Props) {
     formState: { errors },
   } = form;
 
-  // When initialData is provided (edit mode), reset the form values
   useEffect(() => {
     if (!initialData) return;
 
@@ -137,7 +137,6 @@ export default function ToDoDialog({ initialData, trigger, onSaved }: Props) {
     setValue("checklist", [...checklist, { text: "" }]);
   };
 
-  // Clear dueTime when dueDate is removed and keep time selectors disabled unless dueDate exists
   useEffect(() => {
     if (!dueDateValue) {
       setValue("dueTime", undefined);
@@ -146,35 +145,22 @@ export default function ToDoDialog({ initialData, trigger, onSaved }: Props) {
 
   const submitForm = (data: CreateTodoInput) => {
     startTransition(async () => {
-      // If initialData has an id, we are editing
       if (initialData && initialData.id) {
         const payload = {
           id: initialData.id,
           ...data,
         } as unknown as UpdateTodoInput;
-        const res = await updateTodo(payload);
-
-        if (!res.success) {
-          toast.error(res.error?.message || "Oops, couldn't update that!");
-          return;
-        }
-
+        const res = await withClientAction(() => updateTodo(payload), true)
         toast.success("Nice! Todo updated 🎉");
-        onSaved?.(res.data);
+        onSaved?.(res);
         setOpen(false);
         return;
       }
 
-      const res = await createTodo(data);
-
-      if (!res.success) {
-        toast.error(res.error?.message || "Oops, couldn't save that!");
-        return;
-      }
-
+      const res = await withClientAction(() => createTodo(data), true);
       toast.success("Nice! Todo added 🎉");
       reset();
-      onSaved?.(res.data);
+      onSaved?.(res);
       setOpen(false);
     });
   };
