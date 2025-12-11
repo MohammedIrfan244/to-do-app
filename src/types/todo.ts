@@ -7,6 +7,15 @@ export const prioritySortValues : Record<IPriority, number> = {
   'LOW': 1,
 };
 
+export const statusValues = {
+  PLAN: 'PLAN',
+  PENDING: 'PENDING',
+  DONE: 'DONE',
+  CANCELLED: 'CANCELLED',
+  OVERDUE: 'OVERDUE',
+  ARCHIVED: 'ARCHIVED',
+}
+
 export interface ITodo {
   id: string;
   userId: string;

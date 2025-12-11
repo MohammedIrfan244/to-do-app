@@ -1,9 +1,8 @@
-// components/layout/Header.tsx (or wherever your Header is located)
 "use client";
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { useSession } from "next-auth/react"; // signOut is no longer needed here
+import { useSession } from "next-auth/react";
 
 import {
   LogOut,
@@ -14,6 +13,7 @@ import {
   Calendar,
   ChevronDown,
   Sparkles,
+  LoaderPinwheelIcon,
 } from "lucide-react";
 
 import { navItems } from "@/lib/nav";
@@ -33,8 +33,6 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 
-// Remove AlertDialog imports
-
 import { Card, CardContent } from "@/components/ui/card";
 import { useTheme } from "next-themes";
 import PookieFlowers from "../decoration/pookie-flowers";
@@ -42,23 +40,36 @@ import NaturalDecor from "../decoration/natural-decor";
 import GothicDecor from "../decoration/gothic-decor";
 import DarkDecor from "../decoration/dark-decor";
 import LightDecor from "../decoration/light-decor";
-import LogoutConfirmDialog from "../auth/logout-dialogue"; 
+import LogoutConfirmDialog from "../auth/logout-dialogue";
+import { flagTimestamp } from "@/server/flag-time-stamp";
+import { withClientAction } from "@/lib/helper/with-client-action";
+import { toast } from "sonner";
+import clsx from "clsx";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 
 export default function Header() {
   const pathname = usePathname();
   const { data: session } = useSession();
-
-  // 💡 State for the new dialog component
   const [confirmLogout, setConfirmLogout] = useState(false);
   const [mounted, setMounted] = useState(false);
-
   const [time, setTime] = useState("");
   const [date, setDate] = useState("");
   const [greeting, setGreeting] = useState("");
   const { theme } = useTheme();
+  const [loading, setLoading] = useState(false);
+
+  const handleFlag = async () => {
+    setLoading(true);
+    await withClientAction(() => flagTimestamp());
+    toast.success("Timestamp updated");
+    setLoading(false);
+  };
 
   useEffect(() => {
     setMounted(true);
+
+    flagTimestamp();
+
     const updateClock = () => {
       const now = new Date();
 
@@ -79,9 +90,11 @@ export default function Header() {
       );
 
       const hrs = now.getHours();
-      if (hrs < 12) setGreeting("Good Morning");
-      else if (hrs < 18) setGreeting("Good Afternoon");
-      else setGreeting("Good Evening");
+      if (3 <= hrs && hrs < 12) setGreeting("Good Morning");
+      else if (12 <= hrs && hrs < 18) setGreeting("Good Afternoon");
+      else if (18 <= hrs && hrs < 22) setGreeting("Good Evening");
+      else if (22 <= hrs && hrs < 1) setGreeting("Good Night");
+      else setGreeting("Get some sleep bro !");
     };
 
     updateClock();
@@ -157,14 +170,27 @@ export default function Header() {
           </Card>
         </div>
 
-        {/* --- RIGHT SECTION: Actions & User --- */}
         <div className="flex items-center gap-3 shrink-0">
-          <div className="md:hidden flex flex-col items-end mr-1">
-            <span className="text-xs font-bold">{time}</span>
-            <span className="text-[10px] text-muted-foreground">
-              {date.split(",")[0]}
-            </span>
-          </div>
+          <TooltipProvider delayDuration={150}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  onClick={handleFlag}
+                  className="h-9 px-3 border-border/60 flex items-center settings-button gap-2 transition-all duration-300 ease-out hover:bg-accent hover:border-primary/30 hover:shadow-md hover:scale-[1.02] active:scale-95 cursor-pointer"
+                >
+                  <LoaderPinwheelIcon
+                    size={16}
+                    className={clsx(loading ? "animate-spin" : "settings-icon")}
+                  />
+                </Button>
+              </TooltipTrigger>
+
+              <TooltipContent side="bottom" className="text-xs">
+                Update your current datas
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
 
           <ModeToggle />
 
@@ -190,7 +216,7 @@ export default function Header() {
                 />
               </Button>
             </DropdownMenuTrigger>
-            
+
             <DropdownMenuContent
               align="end"
               className="w-64 p-2 animate-in fade-in zoom-in-95 duration-200 relative overflow-hidden"
@@ -201,7 +227,7 @@ export default function Header() {
               {theme === "gothic" && <GothicDecor />}
               {theme === "dark" && <DarkDecor />}
               {theme === "light" && <LightDecor />}
-              
+
               <DropdownMenuLabel className="font-normal p-2 relative z-10">
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-semibold leading-none flex items-center gap-2">

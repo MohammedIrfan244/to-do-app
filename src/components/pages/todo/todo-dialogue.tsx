@@ -121,6 +121,7 @@ export default function ToDoDialog({ initialData, trigger, onSaved }: Props) {
 
   const tags = watch("tags") || [];
   const checklist = watch("checklist") || [];
+  const dueDateValue = watch("dueDate");
 
   const addTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
@@ -136,11 +137,21 @@ export default function ToDoDialog({ initialData, trigger, onSaved }: Props) {
     setValue("checklist", [...checklist, { text: "" }]);
   };
 
+  // Clear dueTime when dueDate is removed and keep time selectors disabled unless dueDate exists
+  useEffect(() => {
+    if (!dueDateValue) {
+      setValue("dueTime", undefined);
+    }
+  }, [dueDateValue, setValue]);
+
   const submitForm = (data: CreateTodoInput) => {
     startTransition(async () => {
       // If initialData has an id, we are editing
       if (initialData && initialData.id) {
-        const payload = ({ id: initialData.id, ...data } as unknown) as UpdateTodoInput;
+        const payload = {
+          id: initialData.id,
+          ...data,
+        } as unknown as UpdateTodoInput;
         const res = await updateTodo(payload);
 
         if (!res.success) {
@@ -174,13 +185,13 @@ export default function ToDoDialog({ initialData, trigger, onSaved }: Props) {
         {trigger ? (
           trigger
         ) : (
-          <Button>
+          <Button className="transition-transform duration-300 hover:-translate-y-0.5 active:translate-y-0">
             <Plus className="w-4 h-4 mr-2" /> New Todo
           </Button>
         )}
       </DialogTrigger>
 
-      <DialogContent className="bg-background text-foreground max-h-[90vh] overflow-y-auto max-w-4xl">
+      <DialogContent className="bg-background text-foreground max-h-[90vh] overflow-y-auto overflow-x-hidden max-w-4xl">
         <DialogHeader>
           <DialogTitle className="text-xl">
             What&apos;s on your mind?
@@ -314,12 +325,14 @@ export default function ToDoDialog({ initialData, trigger, onSaved }: Props) {
           )}
 
           {/* Date + Time Row */}
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <div className="space-y-2 md:col-span-2">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-2 md:gap-5">
+            {/* DATE SELECTOR */}
+            <div className="space-y-2 md:col-span-2 min-w-0">
               <Label className="flex items-center gap-2 text-sm font-medium">
                 <CalendarIcon className="w-3.5 h-3.5" />
-                When&apos;s it due?
+                When's it due?
               </Label>
+
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -328,30 +341,47 @@ export default function ToDoDialog({ initialData, trigger, onSaved }: Props) {
                     className="w-full justify-start text-left h-10 text-sm"
                   >
                     <CalendarIcon className="w-3.5 h-3.5 mr-2" />
-                    {/* 👇 MODIFIED LINE: Use formatDate here */}
                     {watch("dueDate")
-                      ? formatDate(watch("dueDate"), 15) // Max length of 15 characters, e.g., "Oct 26, 202..."
+                      ? formatDate(watch("dueDate"), 15)
                       : "Pick a date"}
-                    {/* 👆 END MODIFIED LINE */}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="p-0">
-                  <Calendar
-                    mode="single"
-                    selected={watch("dueDate") as Date | undefined}
-                    onSelect={(date: Date | undefined) =>
-                      setValue("dueDate", date as Date | undefined)
-                    }
-                  />
+
+                <PopoverContent matchTriggerWidth={false} className="p-0">
+                  <div className="flex flex-col">
+                    <Calendar
+                      mode="single"
+                      selected={watch("dueDate") as Date | undefined}
+                      onSelect={(date: Date | undefined) =>
+                        setValue("dueDate", date)
+                      }
+                    />
+
+                    {/* CLEAR DATE BUTTON */}
+                    {watch("dueDate") && (
+                      <Button
+                        variant="ghost"
+                        className="text-sm w-full border-t rounded-none"
+                        onClick={() => {
+                          setValue("dueDate", undefined);
+                          setValue("dueTime", undefined);
+                        }}
+                      >
+                        Clear Date
+                      </Button>
+                    )}
+                  </div>
                 </PopoverContent>
               </Popover>
             </div>
 
+            {/* TIME SELECTORS */}
             <div className="space-y-2 md:col-span-3">
               <Label className="flex items-center gap-2 text-sm font-medium">
                 <Clock className="w-3.5 h-3.5" />
                 What time?
               </Label>
+
               <div className="grid grid-cols-3 gap-2">
                 {/* Hour */}
                 <Select
@@ -364,7 +394,10 @@ export default function ToDoDialog({ initialData, trigger, onSaved }: Props) {
                     )
                   }
                 >
-                  <SelectTrigger className="h-10 text-sm">
+                  <SelectTrigger
+                    className="h-10 text-sm"
+                    disabled={!dueDateValue}
+                  >
                     <SelectValue placeholder="Hour" />
                   </SelectTrigger>
                   <SelectContent>
@@ -390,7 +423,10 @@ export default function ToDoDialog({ initialData, trigger, onSaved }: Props) {
                     )
                   }
                 >
-                  <SelectTrigger className="h-10 text-sm">
+                  <SelectTrigger
+                    className="h-10 text-sm"
+                    disabled={!dueDateValue}
+                  >
                     <SelectValue placeholder="Min" />
                   </SelectTrigger>
                   <SelectContent>
@@ -411,8 +447,11 @@ export default function ToDoDialog({ initialData, trigger, onSaved }: Props) {
                     )
                   }
                 >
-                  <SelectTrigger className="h-10 text-sm">
-                    <SelectValue placeholder="AM/PM" />
+                  <SelectTrigger
+                    className="h-10 text-sm"
+                    disabled={!dueDateValue}
+                  >
+                    <SelectValue placeholder="AM" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="AM" className="text-sm">
@@ -457,10 +496,10 @@ export default function ToDoDialog({ initialData, trigger, onSaved }: Props) {
           </div>
 
           {/* FOOTER */}
-          <DialogFooter className="gap-2 sm:gap-0 pt-4">
+          <DialogFooter className="gap-2 pt-4">
             <Button
               type="button"
-              variant="ghost"
+              variant="outline"
               onClick={() => setOpen(false)}
               className="h-10 px-6 text-sm"
             >

@@ -45,6 +45,7 @@ import { getTodoTags } from "@/server/to-do-action";
 import { IGetTodoTagsPayload } from "@/types/todo";
 import { withClientAction } from "@/lib/helper/with-client-action";
 import { priorityColors } from "@/lib/color";
+import ToDoDialog from "./todo-dialogue";
 
 interface TodoHeaderProps {
   filters: TodoFilterInput;
@@ -54,6 +55,7 @@ interface TodoHeaderProps {
   applyFilters: () => void;
   todayMode: boolean;
   setTodayMode: (value: boolean) => void;
+  load: (override?: TodoFilterInput) => Promise<void>;
 }
 
 // --- COMPONENT START ---
@@ -65,6 +67,7 @@ export default function TodoHeader({
   applyFilters,
   todayMode,
   setTodayMode,
+  load,
 }: TodoHeaderProps) {
   const [availableTags, setAvailableTags] = React.useState<
     IGetTodoTagsPayload[]
@@ -111,25 +114,32 @@ export default function TodoHeader({
             />
           </div>
 
-          {/* Today Mode Switch */}
-          <Card
-            className="bg-secondary/30 p-3 sm:p-2 border-border/40 transition-all duration-300 hover:bg-secondary/50 hover:border-primary/20 group flex items-center justify-between sm:justify-start group"
-            onClick={() => setTodayMode(!todayMode)}
-          >
-            <CardContent className="flex items-center gap-3 py-0 px-1 md:px-2">
-              <Label
-                htmlFor="today-mode"
-                className="text-sm font-bold text-foreground/80 cursor-pointer group-hover:scale-90 transition-all duration-100 ease-initial group-hover:text-primaryw hitespace-nowrap"
-              >
-                Focus on Today
-              </Label>
-              <Switch
-                id="today-mode"
-                checked={todayMode}
-                onCheckedChange={setTodayMode}
-              />
-            </CardContent>
-          </Card>
+          <div className="flex flex-row-reverse items-center justify-between gap-2 w-full md:w-auto">
+            <ToDoDialog onSaved={()=>load(filters)} />
+            <Card
+              className="flex-1 bg-secondary/30 p-2 border-border/40 transition-all cursor-pointer 
+               duration-300 hover:bg-secondary/50 hover:border-primary/20 group"
+              onClick={() => setTodayMode(!todayMode)}
+            >
+              <CardContent className="flex items-center justify-between gap-3 py-0 px-1 md:px-2">
+                {/* Label */}
+                <Label
+                  htmlFor="today-mode"
+                  className="text-sm font-bold text-foreground/80 cursor-pointer 
+                   transition-all duration-100 group-hover:scale-90 group-hover:text-primary whitespace-nowrap"
+                >
+                  Focus on Today
+                </Label>
+
+                {/* Switch */}
+                <Switch
+                  id="today-mode"
+                  checked={todayMode}
+                  onCheckedChange={setTodayMode}
+                />
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
         {/* Main Separator */}
@@ -188,9 +198,6 @@ export default function TodoHeader({
                 </SelectItem>
                 <SelectItem value="OVERDUE" className="whitespace-nowrap px-2">
                   Running late
-                </SelectItem>
-                <SelectItem value="ARCHIVED" className="whitespace-nowrap px-2">
-                  Stored away
                 </SelectItem>
               </SelectContent>
             </Select>
@@ -393,14 +400,12 @@ export default function TodoHeader({
             </Label>
             <Button
               onClick={applyFilters}
-              className="bg-primary text-primary-foreground flex items-center 
-                   group-hover:flex-row-reverse 
-                   transition-all duration-300 hover:bg-primary/90 font-semibold w-full"
+              className="bg-primary text-primary-foreground flex items-center group-hover:flex-row-reverse transition-all duration-300 hover:bg-primary/90 font-semibold w-full"
             >
               <Filter
                 className="h-4 w-4 mr-2 
                        transition-all duration-300 
-                       group-hover:ml-2 group-hover:mr-0"
+                       group-hover:ml-2 group-hover:rotate-90 group-hover:mr-0"
               />
               <span className="transition-all duration-300 group-hover:mr-2">
                 Show Me The Tasks!

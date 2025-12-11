@@ -140,7 +140,10 @@ export const getTodoList = withErrorWrapper<IGetTodoListPayload[], [TodoFilterIn
     orderBy.push({ createdAt: "desc" });
   }
   const todos = await prisma.todo.findMany({
-    where,
+    where : {
+      ...where,
+      status: { not: "ARCHIVED" },
+    },
     orderBy,
     select: {
       id: true,

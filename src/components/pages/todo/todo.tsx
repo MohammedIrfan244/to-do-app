@@ -49,6 +49,7 @@ function Todo() {
   return (
     <div className="section-wrapper">
       <TodoHeader
+        load={load}
         filters={filters}
         setFilters={setFilters}
         search={search}
