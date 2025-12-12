@@ -67,7 +67,6 @@ export default function Header() {
 
   useEffect(() => {
     setMounted(true);
-
     flagTimestamp();
 
     const updateClock = () => {
@@ -134,11 +133,9 @@ export default function Header() {
         </div>
 
         {/* --- CENTER SECTION: Time Card --- */}
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden md:flex flex-col items-center justify-center">
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 md:flex flex-col items-center justify-center">
           <Card
-            className="flex flex-col items-center justify-center py-1 px-5 md:py-3 md:px-6 bg-secondary/30 border border-border/40 gap-2 
-            transition-all duration-500 ease-out 
-            hover:bg-secondary/50 hover:border-primary/20 hover:shadow-lg hover:-translate-y-0.5 group"
+            className="flex flex-col items-center justify-center py-1 px-5 md:py-3 md:px-6 bg-secondary/30 gap-2 transition-all duration-500 ease-out border-0 shadow-none hover:bg-secondary/50 lg hover:-translate-y-0.5 group"
           >
             {/* Greeting */}
             <div className="flex items-center gap-2 mb-0.5">

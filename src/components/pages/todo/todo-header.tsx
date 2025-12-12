@@ -343,15 +343,15 @@ export default function TodoHeader({
               <SelectContent>
                 <SelectItem value="CREATED_AT">
                   <span className="whitespace-nowrap">
-                    Newest First (Created)
+                    Created Date
                   </span>
                 </SelectItem>
                 <SelectItem value="DUE_DATE">
-                  <span className="whitespace-nowrap">Due Soon (Due Date)</span>
+                  <span className="whitespace-nowrap">Due Soon Tasks</span>
                 </SelectItem>
                 <SelectItem value="PRIORITY">
                   <span className="whitespace-nowrap">
-                    Most Important (Priority)
+                    Priority Level
                   </span>
                 </SelectItem>
               </SelectContent>
@@ -381,12 +381,12 @@ export default function TodoHeader({
               <SelectContent>
                 <SelectItem value="ASC">
                   <span className="whitespace-nowrap">
-                    Oldest / A-Z (Ascending)
+                    Ascending
                   </span>
                 </SelectItem>
                 <SelectItem value="DESC">
                   <span className="whitespace-nowrap">
-                    Newest / Z-A (Descending)
+                    Descending
                   </span>
                 </SelectItem>
               </SelectContent>

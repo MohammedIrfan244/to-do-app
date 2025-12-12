@@ -2,7 +2,7 @@
 import { withErrorWrapper, AppError } from "@/lib/server-utils/error-wrapper";
 import { prisma } from "@/lib/prisma";
 import { getUserId } from "@/lib/server-utils/get-user";
-import { ITodo , IGetTodoListPayload, ITodoStatus , IGetTodoTagsPayload } from "@/types/todo";
+import { ITodo , IGetTodoListPayload, ITodoStatus , IGetTodoTagsPayload , prioritySortValues, IPriority } from "@/types/todo";
 import { 
   createTodoSchema, 
   getTodoByIdSchema,
@@ -55,12 +55,19 @@ function isRenewalDay(renewStart: Date | null, renewInterval: string | null, ren
   }
 }
 
+function getPrioritySortValue(priority?: string): number {
+  if(!priority)return 0;
+  return prioritySortValues[priority as IPriority];
+}
+
 // Action to create a new to-do item
 export const createTodo = withErrorWrapper<ITodo , [CreateTodoInput]>(async (input: CreateTodoInput): Promise<ITodo> => {
   const validatedInput = createTodoSchema.parse(input);
   
   const userId = await getUserId();
-  
+
+  const priorityInt = getPrioritySortValue(validatedInput.priority);
+
   const todo = await prisma.todo.create({
     data: {
       userId,
@@ -68,6 +75,7 @@ export const createTodo = withErrorWrapper<ITodo , [CreateTodoInput]>(async (inp
       description: validatedInput.description,
       status: (validatedInput.status || "PLAN") as ITodoStatus,
       priority: validatedInput.priority,
+      priorityInt,
       tags: validatedInput.tags || [],
       dueDate: validatedInput.dueDate ? new Date(validatedInput.dueDate) : undefined,
       dueTime: validatedInput.dueTime,
@@ -90,83 +98,83 @@ export const createTodo = withErrorWrapper<ITodo , [CreateTodoInput]>(async (inp
 }); 
 
 // Action to get a list of to-do items with optional filtering and sorting
-export const getTodoList = withErrorWrapper<IGetTodoListPayload[], [TodoFilterInput]>(async (filters: TodoFilterInput): Promise<IGetTodoListPayload[]> => {
-  const validatedFilters = todoFilterSchema.parse(filters);
-  const userId = await getUserId();
-  const andConditions: Prisma.TodoWhereInput[] = [{ userId }];
+export const getTodoList = withErrorWrapper<IGetTodoListPayload, [TodoFilterInput]>(async (filters: TodoFilterInput):Promise<IGetTodoListPayload> => {
+    const validatedFilters = todoFilterSchema.parse(filters);
+    const userId = await getUserId();
 
-  if (validatedFilters.status) {
-    andConditions.push({ status: validatedFilters.status });
-  }
+    const andConditions: Prisma.TodoWhereInput[] = [{ userId }];
 
-  if (validatedFilters.priority) {
-    andConditions.push({ priority: validatedFilters.priority });
-  }
+    if (validatedFilters.status) {
+      andConditions.push({ status: validatedFilters.status });
+    }
 
-  if (validatedFilters.tags && validatedFilters.tags.length > 0) {
-    andConditions.push({ tags: { hasSome: validatedFilters.tags } });
-  }
+    if (validatedFilters.priority) {
+      andConditions.push({ priority: validatedFilters.priority });
+    }
 
-  if (validatedFilters.query) {
-    const q = validatedFilters.query;
-    andConditions.push({
-      OR: [
-        { title: { contains: q, mode: "insensitive" } },
-        { description: { contains: q, mode: "insensitive" } },
-        { tags: { has: q } },
-      ],
+    if (validatedFilters.tags && validatedFilters.tags.length > 0) {
+      andConditions.push({ tags: { hasSome: validatedFilters.tags } });
+    }
+
+    if (validatedFilters.query) {
+      const q = validatedFilters.query;
+      andConditions.push({
+        OR: [
+          { title: { contains: q, mode: "insensitive" } },
+          { description: { contains: q, mode: "insensitive" } },
+          { tags: { has: q } },
+        ],
+      });
+    }
+
+    const sortFieldMap = {
+      CREATED_AT: "createdAt",
+      DUE_DATE: "dueDate",
+      PRIORITY: "priorityInt",
+    } as const;
+
+    const prismaSortField =
+      validatedFilters.sortBy ? sortFieldMap[validatedFilters.sortBy] : "createdAt";
+
+    const prismaSortOrder = validatedFilters.sortOrder?.toLowerCase() || "desc";
+
+    const todos = await prisma.todo.findMany({
+      where: { AND: andConditions },
+      orderBy: {
+        [prismaSortField]: prismaSortOrder,
+      },
     });
-  }
 
-  const where: Prisma.TodoWhereInput = andConditions.length === 1 ? andConditions[0] : { AND: andConditions };
-  const orderBy: Prisma.TodoOrderByWithRelationInput[] = [];
-  const order = validatedFilters.sortOrder === "ASC" ? "asc" : 
-                validatedFilters.sortOrder === "DESC" ? "desc" : undefined;
-  
-  if (validatedFilters.sortBy && order) {
-    switch (validatedFilters.sortBy) {
-      case "CREATED_AT":
-        orderBy.push({ createdAt: order });
-        break;
-      case "DUE_DATE":
-        orderBy.push({ dueDate: order });
-        break;
-      case "PRIORITY":
-        orderBy.push({ priority: order }); 
-        break;
+    const grouped: IGetTodoListPayload = {
+      plan: [],
+      pending: [],
+      done: [],
+    };
+
+    for (const todo of todos) {
+      switch (todo.status) {
+        case "PLAN":
+          grouped.plan.push(todo);
+          break;
+
+        case "PENDING":
+        case "OVERDUE":
+          grouped.pending.push(todo);
+          break;
+
+        case "DONE":
+        case "CANCELLED":
+          grouped.done.push(todo);
+          break;
+
+        default:
+          grouped.plan.push(todo);
+      }
     }
-  }
-  if (orderBy.length === 0) {
-    orderBy.push({ createdAt: "desc" });
-  }
-  const todos = await prisma.todo.findMany({
-    where : {
-      ...where,
-      status: { not: "ARCHIVED" },
-    },
-    orderBy,
-    select: {
-      id: true,
-      title: true,
-      status: true,
-      priority: true,
-      dueDate: true,
-      renewStart: true,
-      renewInterval: true,
-      renewEvery: true,
-    },
-  });
 
-  // Filter renewal tasks to only include those on their renewal day
-  const filtered = todos.filter(todo => {
-    if (todo.renewStart && todo.renewInterval && todo.renewEvery) {
-      return isRenewalDay(todo.renewStart, todo.renewInterval, todo.renewEvery);
-    }
-    return true;
-  });
-
-  return filtered as IGetTodoListPayload[];
-});
+    return grouped;
+  }
+);
 
 // Action to get a specific to-do item by ID
 export const getTodoById = withErrorWrapper<ITodo, [GetTodoByIdInput]>(async (input: GetTodoByIdInput): Promise<ITodo> => {
@@ -210,10 +218,14 @@ export const updateTodo = withErrorWrapper<ITodo, [UpdateTodoInput]>(async (inpu
 
   // Handle checklist updates
   if (validatedInput.checklist) {
-    // Delete all existing checklist items and create new ones
     await prisma.checklistItem.deleteMany({
       where: { todoId: validatedInput.id },
     });
+  }
+
+  let priorityInt: number = existingTodo.priorityInt;
+  if(validatedInput.priority !== existingTodo.priority && (typeof validatedInput.priority === "string")) {
+    priorityInt = getPrioritySortValue(validatedInput.priority);
   }
 
   const todo = await prisma.todo.update({
@@ -222,6 +234,7 @@ export const updateTodo = withErrorWrapper<ITodo, [UpdateTodoInput]>(async (inpu
       title: validatedInput.title,
       description: validatedInput.description,
       priority: validatedInput.priority,
+      priorityInt,
       tags: validatedInput.tags,
       dueDate: validatedInput.dueDate ? new Date(validatedInput.dueDate) : undefined,
       dueTime: validatedInput.dueTime,
@@ -440,9 +453,10 @@ export const markChecklistItem = withErrorWrapper<ITodo, [MarkChecklistItemInput
 });
 
 // Action to get today's todos (due today, overdue, and renewal tasks)
-export const getTodayTodos = withErrorWrapper<IGetTodoListPayload[], []>(async (): Promise<IGetTodoListPayload[]> => {
+export const getTodayTodos = withErrorWrapper<IGetTodoListPayload,[]>(async (): Promise<IGetTodoListPayload> => {
   const userId = await getUserId();
   const currentDate = today();
+
   const tomorrow = new Date(currentDate);
   tomorrow.setDate(tomorrow.getDate() + 1);
 
@@ -451,14 +465,12 @@ export const getTodayTodos = withErrorWrapper<IGetTodoListPayload[], []>(async (
       userId,
       NOT: { status: "ARCHIVED" },
       OR: [
-        // Due today
         {
           dueDate: {
             gte: currentDate,
             lt: tomorrow,
           },
         },
-        // Overdue
         {
           dueDate: { lt: currentDate },
           status: { not: "DONE" },
@@ -478,19 +490,49 @@ export const getTodayTodos = withErrorWrapper<IGetTodoListPayload[], []>(async (
     },
   });
 
-  // Filter renewal tasks to only include those on their renewal day
-  const filtered = todos.filter(todo => {
+  const filtered = todos.filter((todo) => {
     if (todo.renewStart && todo.renewInterval && todo.renewEvery) {
-      return isRenewalDay(todo.renewStart, todo.renewInterval, todo.renewEvery);
+      return isRenewalDay(
+        todo.renewStart,
+        todo.renewInterval,
+        todo.renewEvery
+      );
     }
     return true;
   });
 
-  return filtered as IGetTodoListPayload[];
+  const grouped: IGetTodoListPayload = {
+    plan: [],
+    pending: [],
+    done: [],
+  };
+
+  for (const todo of filtered) {
+    switch (todo.status) {
+      case "PLAN":
+        grouped.plan.push(todo);
+        break;
+
+      case "PENDING":
+      case "OVERDUE": 
+        grouped.pending.push(todo);
+        break;
+
+      case "DONE":
+      case "CANCELLED": 
+        grouped.done.push(todo);
+        break;
+
+      default:
+        grouped.plan.push(todo);
+    }
+  }
+
+  return grouped;
 });
 
 // Action to get all archived todos
-export const getArchivedTodos = withErrorWrapper<IGetTodoListPayload[], []>(async (): Promise<IGetTodoListPayload[]> => {
+export const getArchivedTodos = withErrorWrapper<IGetTodoListPayload,[]>(async (): Promise<IGetTodoListPayload> => {
   const userId = await getUserId();
 
   const todos = await prisma.todo.findMany({
@@ -508,8 +550,18 @@ export const getArchivedTodos = withErrorWrapper<IGetTodoListPayload[], []>(asyn
     },
   });
 
-  return todos as IGetTodoListPayload[];
+  const grouped: IGetTodoListPayload = {
+    plan: [],
+    pending: [],
+    done: [],
+  };
+  for (const todo of todos) {
+    grouped.done.push(todo);
+  }
+
+  return grouped;
 });
+
 
 // Action to restore a todo from archive
 export const restoreFromArchive = withErrorWrapper<ITodo, [RestoreTodoFromArchiveInput]>(async (input: RestoreTodoFromArchiveInput): Promise<ITodo> => {
