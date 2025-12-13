@@ -59,12 +59,18 @@ export const todoFilterSchema = z.object({
 
 // Schema for getting a specific to-do item by ID
 export const getTodoByIdSchema = z.object({
-  id: z.string().uuid("Invalid Todo ID"),
+  id: z.string().refine(
+    (val) => /^[0-9a-fA-F]{24}$/.test(val),
+    { message: "Invalid ObjectId" }
+  ),
 });
 
 // Schema for updating a to-do item
 export const updateTodoSchema = z.object({
-  id: z.string().uuid("Invalid Todo ID"),
+  id: z.string().refine(
+    (val) => /^[0-9a-fA-F]{24}$/.test(val),
+    { message: "Invalid ObjectId" }
+  ),
   title: z
     .string()
     .min(1, "Title is required")
@@ -94,9 +100,11 @@ export const updateTodoSchema = z.object({
 });
 
 // Schema for deleting a to-do item
-export const deleteTodoSchema = z
-  .object({
-    id: z.string().uuid("Invalid Todo ID"),
+export const deleteTodoSchema = z.object({
+    id: z.string().refine(
+    (val) => /^[0-9a-fA-F]{24}$/.test(val),
+    { message: "Invalid ObjectId" }
+  ),
   })
 
   // Schema for bulk deleting to-do items
@@ -106,8 +114,11 @@ export const bulkDeleteTodoSchema = z.object({
 
 // Schema for changing the status of a to-do item
 export const changeTodoStatusSchema = z.object({
-  id: z.string().uuid("Invalid Todo ID"),
-  status: z.enum(["PLAN", "PENDING", "DONE", "CANCELLED", "OVERDUE", "ARCHIVED"]),
+  id: z.string().refine(
+    (val) => /^[0-9a-fA-F]{24}$/.test(val),
+    { message: "Invalid ObjectId" }
+  ),
+  status: z.enum(["PLAN", "PENDING", "DONE", "CANCELLED"]),
 });
 
 // Schema for bulk changing the status of to-do items
@@ -118,16 +129,20 @@ export const bulkChangeTodoStatusSchema = z.object({
 
 // Schema for marking/unmarking a checklist item
 export const markChecklistItemSchema = z.object({
-  todoId: z.string().uuid("Invalid Todo ID"),
+  todoId: z.string().refine(
+    (val) => /^[0-9a-fA-F]{24}$/.test(val),
+    { message: "Invalid ObjectId" }
+  ),
   checklistItemId: z.string().uuid("Invalid Checklist Item ID"),
 });
 
 // Schema for restore from archive
 export const restoreTodoFromArchiveSchema = z.object({
-  id: z.string().uuid("Invalid Todo ID"),
+  id: z.string().refine(
+    (val) => /^[0-9a-fA-F]{24}$/.test(val),
+    { message: "Invalid ObjectId" }
+  ),
 });
-
-
 
 // type aliases for inferred types
 export type CreateTodoInput = z.infer<typeof createTodoSchema>;

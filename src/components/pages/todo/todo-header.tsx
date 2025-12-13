@@ -12,6 +12,20 @@ import {
   ArrowUpDown,
   Sparkles,
   CheckCircle2,
+  Flame,
+  AlertCircle,
+  Leaf,
+  Clock,
+  PlayCircle,
+  CheckCheck,
+  XCircle,
+  AlertTriangle,
+  Layers,
+  CalendarPlus,
+  CalendarClock,
+  TrendingUp,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 
 import {
@@ -44,7 +58,7 @@ import { TodoFilterInput } from "@/schema/todo";
 import { getTodoTags } from "@/server/to-do-action";
 import { IGetTodoTagsPayload } from "@/types/todo";
 import { withClientAction } from "@/lib/helper/with-client-action";
-import { priorityColors } from "@/lib/color";
+import { priorityColor, statusColor } from "@/lib/color";
 import ToDoDialog from "./todo-dialogue";
 
 interface TodoHeaderProps {
@@ -58,7 +72,6 @@ interface TodoHeaderProps {
   load: (override?: TodoFilterInput) => Promise<void>;
 }
 
-// --- COMPONENT START ---
 export default function TodoHeader({
   filters,
   setFilters,
@@ -115,7 +128,7 @@ export default function TodoHeader({
           </div>
 
           <div className="flex flex-row-reverse items-center justify-between gap-2 w-full md:w-auto">
-            <ToDoDialog onSaved={()=>load(filters)} />
+            <ToDoDialog onSaved={() => load(filters)} />
             <Card
               className="flex-1 bg-secondary/30 p-2 border-border/40 transition-all cursor-pointer 
                duration-300 hover:bg-secondary/50 hover:border-primary/20 group"
@@ -179,25 +192,45 @@ export default function TodoHeader({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="ALL" className="whitespace-nowrap px-2">
-                  See everything there
+                  <span className="flex items-center gap-2">
+                    <Layers className="h-4 w-4 text-muted-foreground" />
+                    See everything there
+                  </span>
                 </SelectItem>
                 <SelectItem value="PLAN" className="whitespace-nowrap px-2">
-                  What’s coming up
+                  <span className="flex items-center gap-2">
+                    <Clock className={`h-4 w-4 ${statusColor.PLAN}`} />
+                    What's coming up
+                  </span>
                 </SelectItem>
                 <SelectItem value="PENDING" className="whitespace-nowrap px-2">
-                  Currently in progress
+                  <span className="flex items-center gap-2">
+                    <PlayCircle className={`h-4 w-4 ${statusColor.PENDING}`} />
+                    Currently in progress
+                  </span>
                 </SelectItem>
                 <SelectItem value="DONE" className="whitespace-nowrap px-2">
-                  Show me the wins
+                  <span className="flex items-center gap-2">
+                    <CheckCheck className={`h-4 w-4 ${statusColor.DONE}`} />
+                    Show me the wins
+                  </span>
                 </SelectItem>
                 <SelectItem
                   value="CANCELLED"
                   className="whitespace-nowrap px-2"
                 >
-                  Dropped tasks
+                  <span className="flex items-center gap-2">
+                    <XCircle className={`h-4 w-4 ${statusColor.CANCELLED}`} />
+                    Dropped tasks
+                  </span>
                 </SelectItem>
                 <SelectItem value="OVERDUE" className="whitespace-nowrap px-2">
-                  Running late
+                  <span className="flex items-center gap-2">
+                    <AlertTriangle
+                      className={`h-4 w-4 ${statusColor.OVERDUE}`}
+                    />
+                    Running late
+                  </span>
                 </SelectItem>
               </SelectContent>
             </Select>
@@ -222,32 +255,34 @@ export default function TodoHeader({
               }
             >
               <SelectTrigger className="bg-background border-border/60 transition-all duration-300 hover:border-primary/30">
-                <SelectValue placeholder="Anything goes ( All )" />
+                <SelectValue placeholder="Anything goes" />
               </SelectTrigger>
 
               <SelectContent>
                 <SelectItem value="ALL">
-                  <span className="whitespace-nowrap">
-                    Anything goes here{" "}
-                    <span className={priorityColors.none}>( All )</span>
+                  <span className="flex items-center gap-2 whitespace-nowrap">
+                    <Layers className="h-4 w-4 text-muted-foreground" />
+                    Anything goes here
                   </span>
                 </SelectItem>
                 <SelectItem value="LOW">
-                  <span className="whitespace-nowrap">
-                    Chill and Do{" "}
-                    <span className={priorityColors.low}>( Low )</span>
+                  <span className="flex items-center gap-2 whitespace-nowrap">
+                    <Leaf className={`h-4 w-4 ${priorityColor.LOW}`} />
+                    Chill and Do
                   </span>
                 </SelectItem>
                 <SelectItem value="MEDIUM">
-                  <span className="whitespace-nowrap">
-                    Meh, Maybe{" "}
-                    <span className={priorityColors.medium}>( Medium )</span>
+                  <span className="flex items-center gap-2 whitespace-nowrap">
+                    <AlertCircle
+                      className={`h-4 w-4 ${priorityColor.MEDIUM}`}
+                    />
+                    Meh, Maybe
                   </span>
                 </SelectItem>
                 <SelectItem value="HIGH">
-                  <span className="whitespace-nowrap">
-                    Oops, Urgent!{" "}
-                    <span className={priorityColors.high}>( High )</span>
+                  <span className="flex items-center gap-2 whitespace-nowrap">
+                    <Flame className={`h-4 w-4 ${priorityColor.HIGH}`} />
+                    Oops, Urgent!
                   </span>
                 </SelectItem>
               </SelectContent>
@@ -342,15 +377,20 @@ export default function TodoHeader({
 
               <SelectContent>
                 <SelectItem value="CREATED_AT">
-                  <span className="whitespace-nowrap">
+                  <span className="flex items-center gap-2 whitespace-nowrap">
+                    <CalendarPlus className="h-4 w-4 text-blue-500" />
                     Created Date
                   </span>
                 </SelectItem>
                 <SelectItem value="DUE_DATE">
-                  <span className="whitespace-nowrap">Due Soon Tasks</span>
+                  <span className="flex items-center gap-2 whitespace-nowrap">
+                    <CalendarClock className="h-4 w-4 text-orange-500" />
+                    Due Soon Tasks
+                  </span>
                 </SelectItem>
                 <SelectItem value="PRIORITY">
-                  <span className="whitespace-nowrap">
+                  <span className="flex items-center gap-2 whitespace-nowrap">
+                    <TrendingUp className="h-4 w-4 text-red-500" />
                     Priority Level
                   </span>
                 </SelectItem>
@@ -380,12 +420,14 @@ export default function TodoHeader({
 
               <SelectContent>
                 <SelectItem value="ASC">
-                  <span className="whitespace-nowrap">
+                  <span className="flex items-center gap-2 whitespace-nowrap">
+                    <ArrowUp className="h-4 w-4 text-green-500" />
                     Ascending
                   </span>
                 </SelectItem>
                 <SelectItem value="DESC">
-                  <span className="whitespace-nowrap">
+                  <span className="flex items-center gap-2 whitespace-nowrap">
+                    <ArrowDown className="h-4 w-4 text-purple-500" />
                     Descending
                   </span>
                 </SelectItem>

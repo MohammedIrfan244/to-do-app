@@ -41,15 +41,13 @@ function Todo() {
     if (response) setTodos(response);
   };
 
-  // Apply filters function that uses current filters state
   const applyFilters = () => {
     load({
       ...filters,
-      query: search || undefined, // Use current search, not debounced
+      query: search || undefined,
     });
   };
 
-  // Auto-load when debounced search changes or today mode toggles
   useEffect(() => {
     load({
       ...filters,
