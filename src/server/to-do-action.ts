@@ -2,7 +2,7 @@
 import { withErrorWrapper, AppError } from "@/lib/server-utils/error-wrapper";
 import { prisma } from "@/lib/prisma";
 import { getUserId } from "@/lib/server-utils/get-user";
-import { ITodo , IGetTodoListPayload, ITodoStatus , IGetTodoTagsPayload , prioritySortValues, IPriority, IGetTodoList } from "@/types/todo";
+import { ITodo , IGetTodoListPayload, ITodoStatus , IGetTodoTagsPayload , prioritySortValues, IPriority, IGetTodoList, ITodoStatsResponsePayload, OverviewStats, TodayStats, StreakStats, PriorityInsights, TimePatternStats, PersonalInsight } from "@/types/todo";
 import { 
   createTodoSchema, 
   getTodoByIdSchema,
@@ -58,6 +58,73 @@ function isRenewalDay(renewStart: Date | null, renewInterval: string | null, ren
 function getPrioritySortValue(priority?: string): number {
   if(!priority)return 0;
   return prioritySortValues[priority as IPriority];
+}
+
+function generateInsights(input: {
+  overview: OverviewStats
+  today: TodayStats
+  streak: StreakStats
+  priority: PriorityInsights
+  time: TimePatternStats
+}): PersonalInsight[] {
+  const insights: PersonalInsight[] = [];
+
+  if (input.streak.current.isActive && input.streak.current.count >= 7) {
+    insights.push({
+      id: "strong-streak",
+      type: "POSITIVE",
+      message: "You are maintaining a strong and consistent daily streak.",
+    });
+  }
+
+  if (!input.streak.current.isActive && input.streak.current.count > 0) {
+    insights.push({
+      id: "streak-broken",
+      type: "WARNING",
+      message:
+        "Your streak has been broken. Completing at least one task today will restart it.",
+    });
+  }
+
+  if (input.overview.overdueTodos > 0) {
+    insights.push({
+      id: "overdue-pressure",
+      type: "WARNING",
+      message: "Overdue tasks are adding pressure to your workflow.",
+    });
+  }
+
+  if (
+    input.priority.counts.HIGH > 0 &&
+    input.priority.overdue.HIGH === 0
+  ) {
+    insights.push({
+      id: "high-priority-control",
+      type: "POSITIVE",
+      message:
+        "You are staying on top of high-priority tasks without letting them slip.",
+    });
+  }
+
+  if (input.today.completedThisWeek > input.today.createdThisWeek) {
+    insights.push({
+      id: "backlog-reduction",
+      type: "POSITIVE",
+      message:
+        "You are reducing your backlog by completing more tasks than you create.",
+    });
+  }
+
+  if (insights.length === 0) {
+    insights.push({
+      id: "neutral-state",
+      type: "NEUTRAL",
+      message:
+        "Your activity is stable. Small consistent actions will improve your momentum.",
+    });
+  }
+
+  return insights;
 }
 
 // Action to create a new to-do item , done
@@ -619,3 +686,337 @@ export const getTodoTags = withErrorWrapper<IGetTodoTagsPayload[], []>(async ():
   const tagPayload : IGetTodoTagsPayload[] = uniqueTags.map(tag => ({ tag, label: tag.toUpperCase() }));
   return tagPayload;
 });
+
+// Action to get todo statistics done
+export const getTodoStat = withErrorWrapper<ITodoStatsResponsePayload, []>(
+  async (): Promise<ITodoStatsResponsePayload> => {
+    const userId = await getUserId();
+
+    const now = new Date();
+    const startOfToday = new Date(now);
+    startOfToday.setHours(0, 0, 0, 0);
+
+    const startOfWeek = new Date(startOfToday);
+    startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+
+    const last30Days = new Date(startOfToday);
+    last30Days.setDate(last30Days.getDate() - 30);
+
+    //  OVERVIEW
+
+    const [
+      totalTodos,
+      activeTodos,
+      completedTodos,
+      cancelledOrArchived,
+      overdueTodos,
+    ] = await Promise.all([
+      prisma.todo.count({ where: { userId } }),
+
+      prisma.todo.count({
+        where: {
+          userId,
+          status: { in: ["PLAN", "PENDING"] },
+        },
+      }),
+
+      prisma.todo.count({
+        where: { userId, status: "DONE" },
+      }),
+
+      prisma.todo.count({
+        where: {
+          userId,
+          status: { in: ["CANCELLED", "ARCHIVED"] },
+        },
+      }),
+
+      prisma.todo.count({
+        where: {
+          userId,
+          status: { not: "DONE" },
+          dueDate: { lt: now },
+        },
+      }),
+    ]);
+
+    //  TODAY & SHORT TERM
+
+    const [
+      dueToday,
+      completedToday,
+      completedThisWeek,
+      createdToday,
+      createdThisWeek,
+    ] = await Promise.all([
+      prisma.todo.count({
+        where: {
+          userId,
+          dueDate: {
+            gte: startOfToday,
+            lt: now,
+          },
+        },
+      }),
+
+      prisma.todo.count({
+        where: {
+          userId,
+          status: "DONE",
+          completedAt: { gte: startOfToday },
+        },
+      }),
+
+      prisma.todo.count({
+        where: {
+          userId,
+          status: "DONE",
+          completedAt: { gte: startOfWeek },
+        },
+      }),
+
+      prisma.todo.count({
+        where: {
+          userId,
+          createdAt: { gte: startOfToday },
+        },
+      }),
+
+      prisma.todo.count({
+        where: {
+          userId,
+          createdAt: { gte: startOfWeek },
+        },
+      }),
+    ]);
+
+    const completionRateToday =
+      dueToday > 0 ? Math.round((completedToday / dueToday) * 100) : undefined;
+
+    // STREAK
+
+    const streak = await prisma.todoStreak.findUnique({
+      where: { userId },
+    });
+
+    const isStreakActive =
+      streak?.lastCompleted &&
+      streak.lastCompleted >= startOfToday;
+
+    const daysSinceLastCompletion = streak?.lastCompleted
+      ? Math.floor(
+          (startOfToday.getTime() -
+            new Date(streak.lastCompleted).getTime()) /
+            (1000 * 60 * 60 * 24)
+        )
+      : undefined;
+
+    const activeDaysLast30 = await prisma.todo.groupBy({
+      by: ["completedAt"],
+      where: {
+        userId,
+        status: "DONE",
+        completedAt: { gte: last30Days },
+      },
+    });
+
+    const percentageActiveLast30 = Math.round(
+      (activeDaysLast30.length / 30) * 100
+    );
+
+    // STATUS BREAKDOWN
+
+    const statusCountsRaw = await prisma.todo.groupBy({
+      by: ["status"],
+      where: { userId },
+      _count: { _all: true },
+    });
+
+    const statusCounts = {
+      PLAN: 0,
+      PENDING: 0,
+      DONE: 0,
+      CANCELLED: 0,
+      OVERDUE: overdueTodos,
+      ARCHIVED: 0,
+    };
+
+    for (const s of statusCountsRaw) {
+      statusCounts[s.status] = s._count._all;
+    }
+
+    //  PRIORITY INSIGHTS
+
+    const priorityCountsRaw = await prisma.todo.groupBy({
+      by: ["priority"],
+      where: { userId },
+      _count: { _all: true },
+    });
+
+    const priorityBase = {
+      HIGH: 0,
+      MEDIUM: 0,
+      LOW: 0,
+      NONE: 0,
+    };
+
+    for (const p of priorityCountsRaw) {
+      priorityBase[p.priority ?? "NONE"] = p._count._all;
+    }
+
+    const insights = generateInsights({
+  overview: {
+    totalTodos,
+    activeTodos,
+    completedTodos,
+    cancelledOrArchived,
+    overdueTodos,
+  },
+  today: {
+    dueToday,
+    overdueNow: overdueTodos,
+    completedToday,
+    completedThisWeek,
+    createdToday,
+    createdThisWeek,
+    completionRateToday,
+  },
+  streak: {
+    current: {
+      isActive: isStreakActive ?? false,
+      count: streak?.count ?? 0,
+      lastCompletedDate: streak?.lastCompleted?.toISOString(),
+      daysSinceLastCompletion: isStreakActive
+        ? undefined
+        : daysSinceLastCompletion,
+    },
+    longest: {
+      count: streak?.longest ?? 0,
+    },
+    health: {
+      averageCompletedPerStreakDay:
+        streak && streak.count > 0
+          ? completedThisWeek / streak.count
+          : 0,
+      activeDaysLast30: activeDaysLast30.length,
+      percentageActiveLast30,
+    },
+  },
+  priority: {
+    counts: priorityBase,
+    completionRate: {
+      HIGH: 0,
+      MEDIUM: 0,
+      LOW: 0,
+      NONE: 0,
+    },
+    overdue: {
+      HIGH: 0,
+      MEDIUM: 0,
+      LOW: 0,
+      NONE: 0,
+    },
+  },
+  time: {
+    mostProductiveDay: null,
+    leastProductiveDay: null,
+    averageCompletedPerDay:
+      Math.round((completedThisWeek / 7) * 10) / 10,
+    zeroActivityDaysLast30: 30 - activeDaysLast30.length,
+  },
+});
+
+
+    // FINAL RETURN
+
+    return {
+      overview: {
+        totalTodos,
+        activeTodos,
+        completedTodos,
+        cancelledOrArchived,
+        overdueTodos,
+      },
+
+      today: {
+        dueToday,
+        overdueNow: overdueTodos,
+        completedToday,
+        completedThisWeek,
+        createdToday,
+        createdThisWeek,
+        completionRateToday,
+      },
+
+      streak: {
+        current: {
+          isActive: isStreakActive ?? false,
+          count: streak?.count ?? 0,
+          lastCompletedDate: streak?.lastCompleted?.toISOString(),
+          daysSinceLastCompletion: isStreakActive
+            ? undefined
+            : daysSinceLastCompletion,
+        },
+        longest: {
+          count: streak?.longest ?? 0,
+        },
+        health: {
+          averageCompletedPerStreakDay:
+            streak && streak.count > 0
+              ? completedThisWeek / streak.count
+              : 0,
+          activeDaysLast30: activeDaysLast30.length,
+          percentageActiveLast30,
+        },
+      },
+
+      statusBreakdown: {
+        counts: statusCounts,
+        trendInsight:
+          completedThisWeek >= createdThisWeek
+            ? "More tasks are getting completed than created."
+            : "Task creation is outpacing completion.",
+      },
+
+      priorityInsights: {
+        counts: priorityBase,
+        completionRate: {
+          HIGH: 0,
+          MEDIUM: 0,
+          LOW: 0,
+          NONE: 0,
+        },
+        overdue: {
+          HIGH: 0,
+          MEDIUM: 0,
+          LOW: 0,
+          NONE: 0,
+        },
+      },
+
+      timePatterns: {
+        mostProductiveDay: null,
+        leastProductiveDay: null,
+        averageCompletedPerDay:
+          Math.round((completedThisWeek / 7) * 10) / 10,
+        zeroActivityDaysLast30: 30 - activeDaysLast30.length,
+      },
+
+      recurringAndChecklist: {
+        recurring: {
+          total: 0,
+          completedOnTime: 0,
+          overdueOrSkipped: 0,
+        },
+        checklist: {
+          todosWithChecklist: 0,
+          todosWithoutChecklist: 0,
+          averageItemsPerTodo: 0,
+          completionRate: 0,
+        },
+      },
+
+      insights: insights,
+    };
+  }
+);

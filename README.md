@@ -19,6 +19,12 @@ hooks/ the hooks used
 useMobile
 useDebounce
 
+lib/
+color
+nav
+prisma
+utils
+
 lib/helper/ the helpers used
 date-formatter
 logger

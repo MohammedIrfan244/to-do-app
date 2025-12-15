@@ -17,6 +17,7 @@ function Todo() {
   });
 
   const [todayMode, setTodayMode] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const [filters, setFilters] = useState<TodoFilterInput>({
     status: undefined,
@@ -31,6 +32,7 @@ function Todo() {
   const debouncedSearch = useDebounce(search, 300);
 
   const load = async (override?: TodoFilterInput) => {
+    setLoading(true);
     const finalFilters = override ?? filters;
     const action = todayMode ? getTodayTodos : getTodoList;
 
@@ -39,6 +41,7 @@ function Todo() {
     );
 
     if (response) setTodos(response);
+    setLoading(false);
   };
 
   const applyFilters = () => {
@@ -69,7 +72,7 @@ function Todo() {
         setTodayMode={setTodayMode}
       />
 
-      <TodoBoard fetchTodos={load} todos={todos} />
+      <TodoBoard loading={loading} fetchTodos={load} todos={todos} />
     </div>
   );
 }
