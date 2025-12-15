@@ -69,7 +69,7 @@ function Todo() {
         setTodayMode={setTodayMode}
       />
 
-      <TodoBoard todos={todos} />
+      <TodoBoard fetchTodos={load} todos={todos} />
     </div>
   );
 }

@@ -1,5 +1,10 @@
 import { z } from "zod";
 
+const MONGOID = z.string().refine(
+  (val) => /^[0-9a-fA-F]{24}$/.test(val),
+  { message: "Invalid ObjectId" }
+);
+
 // TODO THINGS
 
 // Schema for creating a new to-do item
@@ -59,18 +64,12 @@ export const todoFilterSchema = z.object({
 
 // Schema for getting a specific to-do item by ID
 export const getTodoByIdSchema = z.object({
-  id: z.string().refine(
-    (val) => /^[0-9a-fA-F]{24}$/.test(val),
-    { message: "Invalid ObjectId" }
-  ),
+  id: MONGOID,
 });
 
 // Schema for updating a to-do item
 export const updateTodoSchema = z.object({
-  id: z.string().refine(
-    (val) => /^[0-9a-fA-F]{24}$/.test(val),
-    { message: "Invalid ObjectId" }
-  ),
+  id: MONGOID,
   title: z
     .string()
     .min(1, "Title is required")
@@ -87,7 +86,7 @@ export const updateTodoSchema = z.object({
   checklist: z
     .array(
       z.object({
-        id: z.string().uuid("Invalid Checklist Item ID").optional(),
+        id: MONGOID.optional(),
         text: z
           .string()
           .min(1, "Checklist item cannot be empty")
@@ -101,47 +100,35 @@ export const updateTodoSchema = z.object({
 
 // Schema for deleting a to-do item
 export const deleteTodoSchema = z.object({
-    id: z.string().refine(
-    (val) => /^[0-9a-fA-F]{24}$/.test(val),
-    { message: "Invalid ObjectId" }
-  ),
+    id: MONGOID,
   })
 
   // Schema for bulk deleting to-do items
-export const bulkDeleteTodoSchema = z.object({
-  ids: z.array(z.string().uuid("Invalid Todo ID")).min(1, "At least one ID must be provided"),
+export const bulkDeleteTodoSchema = z.object({ 
+  ids: z.array(MONGOID).min(1, "At least one ID must be provided"),
 });
 
 // Schema for changing the status of a to-do item
 export const changeTodoStatusSchema = z.object({
-  id: z.string().refine(
-    (val) => /^[0-9a-fA-F]{24}$/.test(val),
-    { message: "Invalid ObjectId" }
-  ),
+  id: MONGOID,
   status: z.enum(["PLAN", "PENDING", "DONE", "CANCELLED"]),
 });
 
 // Schema for bulk changing the status of to-do items
 export const bulkChangeTodoStatusSchema = z.object({
-  ids: z.array(z.string().uuid("Invalid Todo ID")).min(1, "At least one ID must be provided"),
+  ids: z.array(MONGOID).min(1, "At least one ID must be provided"),
   status: z.enum(["PLAN", "PENDING", "DONE", "CANCELLED", "OVERDUE", "ARCHIVED"]),
 });
 
 // Schema for marking/unmarking a checklist item
 export const markChecklistItemSchema = z.object({
-  todoId: z.string().refine(
-    (val) => /^[0-9a-fA-F]{24}$/.test(val),
-    { message: "Invalid ObjectId" }
-  ),
-  checklistItemId: z.string().uuid("Invalid Checklist Item ID"),
+  todoId: MONGOID,
+  checklistItemId: MONGOID,
 });
 
 // Schema for restore from archive
 export const restoreTodoFromArchiveSchema = z.object({
-  id: z.string().refine(
-    (val) => /^[0-9a-fA-F]{24}$/.test(val),
-    { message: "Invalid ObjectId" }
-  ),
+  id: MONGOID,
 });
 
 // type aliases for inferred types
